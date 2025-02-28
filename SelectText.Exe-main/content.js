@@ -3,7 +3,7 @@ let hasProcessedOCR = false;
 let isSelecting = false;
 let selectionStart = { x: 0, y: 0 };
 let selectionOverlay = null;
-
+let isSignInPopupVisible = false;
 
 // Add at the top of content.js
 async function checkAuthStatus() {
@@ -179,115 +179,7 @@ function initializeTextSelection() {
     }
   });
 }
-// Add the processScreenshot function that was missing
 
-/////////ocr space api/////////////////////
-// function processScreenshot(video) {
-//   return new Promise((resolve) => {
-//     const videoRect = video.getBoundingClientRect();
-//     const scale = window.devicePixelRatio;
-
-//     // Create canvas and draw video
-//     const canvas = document.createElement('canvas');
-//     const ctx = canvas.getContext('2d');
-    
-//     // Set canvas size to video dimensions with scale
-//     canvas.width = videoRect.width * scale;
-//     canvas.height = videoRect.height * scale;
-    
-//     try {
-//       // Draw video at scaled size
-//       ctx.drawImage(
-//         video, 
-//         0, 0,                           
-//         video.videoWidth, video.videoHeight,  
-//         0, 0,                           
-//         canvas.width, canvas.height     
-//       );
-
-//       // Get base64 image
-//       const base64Image = canvas.toDataURL('image/jpeg', 1.0);
-//       const url = 'https://api.ocr.space/parse/image';
-//       const formData = new FormData();
-      
-//       formData.append('base64Image', base64Image);
-//       formData.append('apikey', 'K87012709288957');
-//       formData.append('OCREngine', '2');
-//       formData.append('language', 'eng');
-//       formData.append('scale', 'true');
-//       formData.append('isTable', 'false');
-//       formData.append('detectOrientation', 'true');
-//       formData.append('isOverlayRequired', 'true');
-
-//       fetch(url, {
-//         method: 'POST',
-//         body: formData
-//       })
-//       .then(response => response.json())
-//       .then(responseData => {
-//         if (responseData.OCRExitCode === 1 && responseData.ParsedResults) {
-//           // Convert OCR.space format to match Google Cloud Vision format
-//           const words = responseData.ParsedResults[0].TextOverlay.Lines.flatMap(line => 
-//             line.Words.map(word => ({
-//               text: word.WordText,
-//               y: word.Top / scale,
-//               x: word.Left / scale,
-//               height: word.Height / scale,
-//               width: word.Width / scale,
-//               right: (word.Left + word.Width) / scale // Add right edge position
-//             }))
-//           );
-
-//           // Sort words by vertical position first, then horizontal
-//           const processedWords = words
-//             .sort((a, b) => {
-//               // Group words into lines based on vertical position (within 10px)
-//               const yDiff = Math.abs(a.y - b.y);
-//               if (yDiff < 10) {
-//                 return a.x - b.x; // Same line, sort left to right
-//               }
-//               return a.y - b.y; // Different lines, sort top to bottom
-//             })
-//             .map((word, index) => {
-//               const nextWord = words[index + 1];
-//               if (nextWord) {
-//                 // If words are on the same line and gap is significant
-//                 if (Math.abs(word.y - nextWord.y) < 10 && 
-//                     (nextWord.x - word.right) > word.height * 0.3) {
-//                   word.text += ' '; // Add space
-//                 }
-//                 // If next word is on new line
-//                 if (Math.abs(word.y - nextWord.y) >= 10) {
-//                   word.text += '\n'; // Add newline
-//                 }
-//               }
-//               return {
-//                 text: word.text,
-//                 y: word.y + videoRect.top,
-//                 x: word.x + videoRect.left,
-//                 height: word.height,
-//                 width: word.width,
-//                 right: word.right + videoRect.left
-//               };
-//             });
-
-//           resolve(processedWords);
-//         } else {
-//           console.error('OCR Error:', responseData.ErrorMessage || 'Unknown error');
-//           resolve(null);
-//         }
-//       })
-//       .catch(error => {
-//         console.error('OCR Error:', error);
-//         resolve(null);
-//       });
-//     } catch (error) {
-//       console.error('Video capture error:', error);
-//       resolve(null);
-//     }
-//   });
-// }
-////////////////google cloud api/////////////////////
 // Update the existing processScreenshot function with these changes:
 function showCreditExhaustedPopup(video) {
   // Get video position
@@ -353,10 +245,125 @@ function showCreditExhaustedPopup(video) {
 
   return wrapper;
 }
+// Add this function after showCreditExhaustedPopup function
+// Update this part of showSignInPopup:
+function showSignInPopup(video) {
+  // If popup is already visible, don't create another one
+  if (isSignInPopupVisible) {
+    return null;
+  }
+  
+  isSignInPopupVisible = true;
+  
+  // Get video position
+  const videoRect = video.getBoundingClientRect();
+  
+  // Create wrapper
+  const wrapper = document.createElement('div');
+  wrapper.className = 'signin-popup-wrapper';
+  wrapper.style.left = `${videoRect.left}px`;
+  wrapper.style.top = `${videoRect.top}px`;
+  wrapper.style.width = `${videoRect.width}px`;
+  wrapper.style.height = `${videoRect.height}px`;
+  
+  // Prevent clicks from reaching video
+  wrapper.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+  
+  // Create popup container
+  const popupContainer = document.createElement('div');
+  popupContainer.className = 'signin-popup';
+
+  // Message
+  const message = document.createElement('div');
+  message.className = 'signin-popup-message';
+  message.textContent = 'Please sign in to use SelectText.Exe';
+
+  // Define closePopup function for reuse
+  function closePopup(e) {
+    if (e) {
+      e.stopPropagation();
+    }
+    wrapper.remove();
+    isSignInPopupVisible = false;
+  }
+
+  // Create link with Google Sign-in
+  const link = document.createElement('a');
+  link.className = 'signin-popup-link';
+  link.href = 'http://localhost:5173/login_signup?source=extension&auto_login=true';
+  link.target = '_blank';
+  
+  // Create button content with Google logo and text
+  const buttonContent = document.createElement('div');
+  buttonContent.style.display = 'flex';
+  buttonContent.style.alignItems = 'center';
+  buttonContent.style.justifyContent = 'center';
+  buttonContent.style.gap = '8px';
+  
+  // Google logo as image
+  const googleLogo = document.createElement('img');
+  googleLogo.src = 'https://www.google.com/favicon.ico';
+  googleLogo.alt = 'Google';
+  googleLogo.style.width = '18px';
+  googleLogo.style.height = '18px';
+  
+  // Text span
+  const textSpan = document.createElement('span');
+  textSpan.textContent = 'Sign in with Google';
+  
+  // Add elements to button content
+  buttonContent.appendChild(googleLogo);
+  buttonContent.appendChild(textSpan);
+  
+  // Add button content to link
+  link.appendChild(buttonContent);
+
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(link.href, '_blank');
+    closePopup();
+  });
+
+  // Close button
+  const closeButton = document.createElement('button');
+  closeButton.className = 'signin-popup-close';
+  closeButton.textContent = '×';
+  closeButton.onclick = closePopup;
+
+  // Assemble and add to DOM
+  popupContainer.appendChild(closeButton);
+  popupContainer.appendChild(message);
+  popupContainer.appendChild(link);
+  wrapper.appendChild(popupContainer);
+  document.body.appendChild(wrapper);
+
+  // Auto-remove after 10 seconds
+  setTimeout(() => {
+    if (wrapper.parentNode) {
+      wrapper.remove();
+      isSignInPopupVisible = false;
+    }
+  }, 10000);
+
+  return wrapper;
+}
 async function processScreenshot(video) {
   return new Promise(async (resolve) => {
     try {
-      // Get authentication info first
+      // Check authentication first
+      const isAuthenticated = await checkAuthStatus();
+      
+      if (!isAuthenticated) {
+        // Show sign-in popup if not authenticated
+        showSignInPopup(video);
+        resolve(null);
+        return;
+      }
+      
+      // Get authentication info
       const authInfo = await new Promise((resolve) => {
         chrome.storage.local.get(['access_token', 'refresh_token'], function(result) {
           console.log('Auth tokens retrieved:', {
@@ -367,9 +374,9 @@ async function processScreenshot(video) {
         });
       });
       
-      // Changed from authInfo.token to authInfo.access_token
       if (!authInfo.access_token) {
         console.error('No authentication token found');
+        showSignInPopup(video);
         resolve(null);
         return;
       }
@@ -515,6 +522,7 @@ function createToggleSwitch(video) {
   // Handle toggle switch changes with authentication
   // Inside createToggleSwitch function, update the toggle switch event listener:
 
+  // Update this section in the createToggleSwitch function
 toggleSwitch.addEventListener('change', async (event) => {
   event.stopPropagation();
   
@@ -525,12 +533,17 @@ toggleSwitch.addEventListener('change', async (event) => {
     // Reset checkbox state
     event.target.checked = false;
     
-    // Open extension popup for login using chrome.action API
-    chrome.runtime.sendMessage({ action: "openLogin" }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.error('Error opening login:', chrome.runtime.lastError);
-      }
-    });
+    // Only show sign-in popup if not already visible
+    if (!isSignInPopupVisible) {
+      showSignInPopup(video);
+      
+      // Also inform background script to open login
+      chrome.runtime.sendMessage({ action: "openLogin" }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Error opening login:', chrome.runtime.lastError);
+        }
+      });
+    }
     return;
   }
   

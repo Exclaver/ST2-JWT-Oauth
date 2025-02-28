@@ -8,6 +8,18 @@ const api = axios.create({
   },
 });
 
+export const paymentAPI = {
+  createOrder: async (planId) => {
+    const response = await api.post('/api/payments/create-order/', { plan_id: planId });
+    return response.data;
+  },
+  
+  verifyPayment: async (paymentData) => {
+    const response = await api.post('/api/payments/verify/', paymentData);
+    return response.data;
+  }
+};
+
 const TokenService = {
   getAccessToken: () => sessionStorage.getItem('access_token'),
   getRefreshToken: () => sessionStorage.getItem('refresh_token'),
@@ -42,7 +54,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Refresh token failed, redirect to login
         localStorage.clear();
-        window.location.href = '/login';
+        window.location.href = '/login_signup';
         return Promise.reject(refreshError);
       }
     }
@@ -51,6 +63,7 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
+
   login: async (credentials) => {
     const response = await api.post('/api/auth/callback/', credentials);
     if (response.data.tokens) {

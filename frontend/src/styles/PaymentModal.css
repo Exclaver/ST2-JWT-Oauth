@@ -1,0 +1,132 @@
+.payment-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .payment-modal-content {
+    background-color: #6200ea;
+    padding: 35px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+  }
+  
+  .close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  
+  .close:hover {
+    color: #000;
+  }
+  
+  .payment-modal h2 {
+    margin-bottom: 25px;
+    color: #222;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .plan-details {
+    margin: 25px 0;
+    padding: 20px;
+    background-color: #f0f7ff;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+  }
+  
+  .plan-details p {
+    margin: 12px 0;
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+  }
+  
+  .error-message {
+    color: #d32f2f;
+    margin: 20px 0;
+    padding: 12px 15px;
+    background-color: #ffebee;
+    border-radius: 6px;
+    border-left: 4px solid #d32f2f;
+    font-weight: 500;
+  }
+  
+  .payment-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+  }
+  
+  .pay-button, .cancel-button {
+    padding: 14px 28px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .pay-button {
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    flex-grow: 1;
+    margin-right: 10px;
+  }
+  
+  .pay-button:hover {
+    background-color: #27ae60;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .pay-button:disabled {
+    background-color: #a3a3a3;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .cancel-button {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    flex-grow: 0;
+  }
+  
+  .cancel-button:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .success-message {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 6px;
+    text-align: center;
+    border-left: 4px solid #2e7d32;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { planAPI } from '../api';
+import { processPayment } from '../utils/razorpay';
 import '../styles/Plans.css';
 
 const Plans = () => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [paymentError, setPaymentError] = useState(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(null);
+  const [processingPlanId, setProcessingPlanId] = useState(null);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -22,12 +26,66 @@ const Plans = () => {
     fetchPlans();
   }, []);
 
+  const handlePlanSelect = async (plan) => {
+    if (plan.name === 'Free/Trial') {
+      // Free plan doesn't need payment
+      return;
+    }
+    
+    // Clear any previous messages
+    setPaymentError(null);
+    setPaymentSuccess(null);
+    setProcessingPlanId(plan.id);
+    
+    // Process payment directly
+    await processPayment(
+      plan.id,
+      // Success handler
+      (result) => {
+        setProcessingPlanId(null);
+        setPaymentSuccess({
+          message: `Successfully upgraded to ${result.plan} plan! You now have ${result.credits} credits.`,
+          plan: result.plan,
+          credits: result.credits
+        });
+        
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+          setPaymentSuccess(null);
+        }, 5000);
+      },
+      // Error handler
+      (errorMsg) => {
+        setProcessingPlanId(null);
+        setPaymentError(errorMsg);
+        
+        // Hide error message after 5 seconds
+        setTimeout(() => {
+          setPaymentError(null);
+        }, 5000);
+      }
+    );
+  };
+
   if (loading) return <div className="loading">Loading plans...</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="plans-container">
       <h1 className="plans-title">Choose Your Plan</h1>
+      
+      {paymentSuccess && (
+        <div className="success-message">
+          {paymentSuccess.message}
+        </div>
+      )}
+      
+      {paymentError && (
+        <div className="error-message">
+          {paymentError}
+        </div>
+      )}
+      
       <div className="plans-grid">
         {plans.map((plan) => (
           <div key={plan.id} className={`plan-card ${plan.name.toLowerCase()}`}>
@@ -62,8 +120,14 @@ const Plans = () => {
                 ]}
               </ul>
             </div>
-            <button className="plan-button">
-              {plan.name === 'Free/Trial' ? 'Get Started' : 'Upgrade Now'}
+            <button 
+              className="plan-button"
+              onClick={() => handlePlanSelect(plan)}
+              disabled={processingPlanId === plan.id}
+            >
+              {processingPlanId === plan.id 
+                ? 'Processing...' 
+                : (plan.name === 'Free/Trial' ? 'Get Started' : 'Upgrade Now')}
             </button>
           </div>
         ))}

@@ -1,0 +1,316 @@
+.account-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .account-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .account-header h1 {
+    color: #ffffff;
+    font-size: 2.5rem;
+    margin: 0;
+  }
+  
+  .account-logout-button {
+    background-color: transparent;
+    border: 2px solid #6200ea;
+    color: #6200ea;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+  
+  .account-logout-button:hover {
+    background-color: #6200ea;
+    color: white;
+  }
+  
+  .account-section {
+    background-color: #1f1f1f;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  .account-section:hover {
+    transform: translateY(-5px);
+  }
+  
+  .account-section h2 {
+    color: #ffffff;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid #333;
+  }
+  
+  /* User Info Section */
+  .account-user-details {
+    display: flex;
+    align-items: center;
+  }
+  
+  .account-user-avatar {
+    width: 60px;
+    height: 60px;
+    background-color: #6200ea;
+    color: white;
+    font-size: 1.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 1.5rem;
+  }
+  
+  .account-user-text p {
+    margin: 0.5rem 0;
+  }
+  
+  .account-user-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  
+  .account-user-email, .account-user-username {
+    color: #888;
+    font-size: 1rem;
+  }
+  
+  /* Plan Info Section */
+  .account-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .account-section-header h2 {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  .account-upgrade-button {
+    background-color: #6200ea;
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .account-upgrade-button:hover {
+    background-color: #3700b3;
+  }
+  
+  .account-plan-card {
+    background-color: #2d2d2d;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  
+  .account-plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .account-plan-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+  }
+  
+  .account-plan-price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #6200ea;
+    margin: 0;
+  }
+  
+  .account-plan-expiry {
+    margin-bottom: 1.5rem;
+  }
+  
+  .account-expiry-label {
+    color: #888;
+    margin-bottom: 0.5rem;
+  }
+  
+  .account-expiry-date {
+    font-weight: bold;
+    color: #ffffff;
+  }
+  
+  .account-renewal-countdown {
+    color: #6200ea;
+    font-weight: bold;
+    margin-top: 0.5rem;
+  }
+  
+  .account-credits-info {
+    margin-top: 1.5rem;
+  }
+  
+  .account-credits-header {
+    display: flex;
+    justify-content: space-between;
+    color: #ffffff;
+    margin-bottom: 0.8rem;
+  }
+  
+  .account-credits-progress {
+    height: 10px;
+    background-color: #1f1f1f;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  
+  .account-credits-bar {
+    height: 100%;
+    background-color: #6200ea;
+    border-radius: 5px;
+  }
+  
+  .account-credits-percentage {
+    text-align: right;
+    color: #888;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  /* Payment History Section */
+  .account-payment-table-container {
+    overflow-x: auto;
+  }
+  
+  .account-payment-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .account-payment-table th {
+    text-align: left;
+    padding: 1rem;
+    background-color: #2d2d2d;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  
+  .account-payment-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #333;
+    color: #ffffff;
+  }
+  
+  .account-status-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+  
+  .account-status-badge.completed, .account-status-badge.success {
+    background-color: #0d3b0d;
+    color: #2ecc71;
+  }
+  
+  .account-status-badge.pending {
+    background-color: #3b350d;
+    color: #f5a623;
+  }
+  
+  .account-status-badge.failed {
+    background-color: #3b0d0d;
+    color: #e74c3c;
+  }
+  
+  .account-payment-id {
+    font-family: monospace;
+    color: #6200ea;
+  }
+  
+  /* Loading and Error States */
+  .account-loading, .account-error {
+    text-align: center;
+    padding: 2rem;
+    color: #ffffff;
+  }
+  
+  .account-loading-spinner {
+    border: 4px solid #333;
+    border-top: 4px solid #6200ea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: account-spin 1s linear infinite;
+    margin: 0 auto 1.5rem;
+  }
+  
+  @keyframes account-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .account-error h2 {
+    color: #ff5252;
+    margin-bottom: 1rem;
+  }
+  
+  .account-error button {
+    background-color: #6200ea;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 1.5rem;
+  }
+  
+  .account-error button:hover {
+    background-color: #3700b3;
+  }
+  
+  .account-success-message {
+    background-color: #0d3b0d;
+    color: #ffffff;
+    padding: 15px;
+    margin-bottom: 2rem;
+    border-radius: 6px;
+    text-align: center;
+    border-left: 4px solid #2ecc71;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  .account-error-message {
+    background-color: #3b0d0d;
+    color: #ffffff;
+    padding: 15px;
+    margin-bottom: 2rem;
+    border-radius: 6px;
+    text-align: center;
+    border-left: 4px solid #e74c3c;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }

@@ -41,8 +41,8 @@ REST_FRAMEWORK = {
     ],
 }
 SIMPLE_JWT  =  {
- "ACCESS_TOKEN_LIFETIME" :  timedelta ( minutes = 30 ) ,
- "REFRESH_TOKEN_LIFETIME" :  timedelta ( days = 1 ) ,
+ "ACCESS_TOKEN_LIFETIME" :  timedelta ( days = 30 ) ,
+ "REFRESH_TOKEN_LIFETIME" :  timedelta ( days = 60 ) ,
 }
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'email',
@@ -168,3 +168,6 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
 ]
+# Add these settings
+RAZORPAY_KEY_ID = 'rzp_test_z93HSCbP4S48OA'
+RAZORPAY_KEY_SECRET = 'KXG2NU1iViXryH5wRjiamdm3'

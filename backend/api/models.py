@@ -42,6 +42,8 @@ class Payment(models.Model):
     status = models.CharField(max_length=20, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # payment methiod
+    # currency
 
     def __str__(self):
         return f"{self.user.username} - {self.plan.name} - {self.amount}"
