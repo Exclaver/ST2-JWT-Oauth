@@ -21,6 +21,83 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+import hmac
+import hashlib
+
+@csrf_exempt
+@api_view(['POST'])
+def razorpay_webhook(request):
+    """Handle Razorpay webhook events"""
+    try:
+        # Verify webhook signature
+        webhook_signature = request.headers.get('X-Razorpay-Signature')
+        webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
+        
+        if not webhook_signature or not webhook_secret:
+            return Response({'error': 'Missing webhook signature'}, status=400)
+
+        # Create signature for verification
+        message = request.body
+        expected_signature = hmac.new(
+            webhook_secret.encode(),
+            msg=message,
+            digestmod=hashlib.sha256
+        ).hexdigest()
+
+        # Verify signature
+        if not hmac.compare_digest(webhook_signature, expected_signature):
+            return Response({'error': 'Invalid webhook signature'}, status=400)
+
+        # Parse webhook data
+        webhook_data = json.loads(request.body)
+        event = webhook_data.get('event')
+
+        if event == 'payment.failed':
+            # Handle failed payment
+            payment_id = webhook_data['payload']['payment']['entity']['id']
+            order_id = webhook_data['payload']['payment']['entity']['order_id']
+            
+            try:
+                payment = Payment.objects.get(razorpay_order_id=order_id)
+                payment.status = 'failed'
+                payment.razorpay_payment_id = payment_id
+                payment.save()
+                
+                # You might want to revert any credits or plan changes here
+                
+            except Payment.DoesNotExist:
+                return Response({'error': 'Payment not found'}, status=404)
+
+        elif event == 'payment.authorized':
+            # Handle successful payment authorization
+            payment_id = webhook_data['payload']['payment']['entity']['id']
+            order_id = webhook_data['payload']['payment']['entity']['order_id']
+            
+            try:
+                payment = Payment.objects.get(razorpay_order_id=order_id)
+                if payment.status == 'pending':
+                    payment.status = 'completed'
+                    payment.razorpay_payment_id = payment_id
+                    payment.save()
+                    
+                    # Update user's plan and credits here
+                    profile = payment.user.profile
+                    if payment.plan:
+                        profile.plan = payment.plan
+                        profile.credits_remaining += payment.plan.requests_per_month
+                        if profile.plan_expiry and profile.plan_expiry > timezone.now():
+                            profile.plan_expiry += datetime.timedelta(days=30)
+                        else:
+                            profile.plan_expiry = timezone.now() + datetime.timedelta(days=30)
+                        profile.save()
+                    
+            except Payment.DoesNotExist:
+                return Response({'error': 'Payment not found'}, status=404)
+
+        return Response({'status': 'Webhook processed successfully'})
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
 
 
 @csrf_exempt

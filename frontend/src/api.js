@@ -21,15 +21,15 @@ export const paymentAPI = {
 };
 
 const TokenService = {
-  getAccessToken: () => sessionStorage.getItem('access_token'),
-  getRefreshToken: () => sessionStorage.getItem('refresh_token'),
+  getAccessToken: () => localStorage.getItem('access_token'),
+  getRefreshToken: () => localStorage.getItem('refresh_token'),
   setTokens: (tokens) => {
-    sessionStorage.setItem('access_token', tokens.access);
-    sessionStorage.setItem('refresh_token', tokens.refresh);
+    localStorage.setItem('access_token', tokens.access);
+    localStorage.setItem('refresh_token', tokens.refresh);
   },
   clearTokens: () => {
-    sessionStorage.removeItem('access_token');
-    sessionStorage.removeItem('refresh_token');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
   }
 };
 // Add auth interceptor
@@ -86,7 +86,7 @@ export const authAPI = {
     });
     
     if (response.data.access) {
-      sessionStorage.setItem('access_token', response.data.access);
+      localStorage.setItem('access_token', response.data.access);
     }
     return response.data;
   },

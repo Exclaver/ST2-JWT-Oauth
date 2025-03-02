@@ -14,5 +14,6 @@ urlpatterns = [
     path('payments/create-order/', views.create_payment_order, name='create_payment_order'),
     path('payments/verify/', views.verify_payment, name='verify_payment'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('payments/webhook/', views.razorpay_webhook, name='razorpay_webhook'),
 
 ]

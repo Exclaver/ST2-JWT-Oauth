@@ -27,8 +27,10 @@ const Plans = () => {
   }, []);
 
   const handlePlanSelect = async (plan) => {
+    console.log('Plan selection initiated:', plan);  // Log plan selection
+    
     if (plan.name === 'Free/Trial') {
-      // Free plan doesn't need payment
+      console.log('Free plan selected, skipping payment');
       return;
     }
     
@@ -36,36 +38,46 @@ const Plans = () => {
     setPaymentError(null);
     setPaymentSuccess(null);
     setProcessingPlanId(plan.id);
+    console.log('Processing payment for plan:', plan.id);
     
     // Process payment directly
-    await processPayment(
-      plan.id,
-      // Success handler
-      (result) => {
-        setProcessingPlanId(null);
-        setPaymentSuccess({
-          message: `Successfully upgraded to ${result.plan} plan! You now have ${result.credits} credits.`,
-          plan: result.plan,
-          credits: result.credits
-        });
-        
-        // Hide success message after 5 seconds
-        setTimeout(() => {
-          setPaymentSuccess(null);
-        }, 5000);
-      },
-      // Error handler
-      (errorMsg) => {
-        setProcessingPlanId(null);
-        setPaymentError(errorMsg);
-        
-        // Hide error message after 5 seconds
-        setTimeout(() => {
-          setPaymentError(null);
-        }, 5000);
-      }
-    );
-  };
+    try {
+      console.log('Initiating payment process');
+      await processPayment(
+        plan.id,
+        // Success handler
+        (result) => {
+          console.log('Payment successful:', result);
+          setProcessingPlanId(null);
+          setPaymentSuccess({
+            message: `Successfully upgraded to ${result.plan} plan! You now have ${result.credits} credits.`,
+            plan: result.plan,
+            credits: result.credits
+          });
+          
+          // Hide success message after 5 seconds
+          setTimeout(() => {
+            setPaymentSuccess(null);
+          }, 5000);
+        },
+        // Error handler
+        (errorMsg) => {
+          console.error('Payment failed:', errorMsg);  // Log payment failure
+          setProcessingPlanId(null);
+          setPaymentError(errorMsg);
+          
+          // Hide error message after 5 seconds
+          setTimeout(() => {
+            setPaymentError(null);
+          }, 5000);
+        }
+      );
+    } catch (error) {
+      console.error('Payment process error:', error);  // Log any caught errors
+      setProcessingPlanId(null);
+      setPaymentError('Failed to initiate payment');
+    }
+};
 
   if (loading) return <div className="loading">Loading plans...</div>;
   if (error) return <div className="error">{error}</div>;

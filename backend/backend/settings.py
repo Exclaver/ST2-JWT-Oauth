@@ -43,6 +43,7 @@ REST_FRAMEWORK = {
 SIMPLE_JWT  =  {
  "ACCESS_TOKEN_LIFETIME" :  timedelta ( days = 30 ) ,
  "REFRESH_TOKEN_LIFETIME" :  timedelta ( days = 60 ) ,
+ 
 }
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'email',
@@ -163,7 +164,28 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://*.ngrok.io",
 ]
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'webhook_debug.log',
+        },
+    },
+    'loggers': {
+        'api': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
@@ -171,3 +193,6 @@ CSRF_TRUSTED_ORIGINS = [
 # Add these settings
 RAZORPAY_KEY_ID = 'rzp_test_z93HSCbP4S48OA'
 RAZORPAY_KEY_SECRET = 'KXG2NU1iViXryH5wRjiamdm3'
+
+# Add this with your other Razorpay settings
+RAZORPAY_WEBHOOK_SECRET = '123456'  # Get this from Razorpay Dashboard

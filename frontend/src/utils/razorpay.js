@@ -33,27 +33,29 @@ export const processPayment = async (planId, onSuccess, onError) => {
       key: orderData.key_id,
       amount: orderData.amount,
       currency: orderData.currency,
-      name: "Your Website Name",
+      name: "Textify",
       description: "Plan Subscription",
       order_id: orderData.order_id,
       handler: async function (response) {
-        // Verify payment on server
+        // Verify payment on serve
+        console.log('Razorpay payment response:', response);
         try {
+          console.log('Verifying payment...');
           const result = await paymentAPI.verifyPayment({
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_order_id: response.razorpay_order_id,
             razorpay_signature: response.razorpay_signature
           });
-          
+          console.log('Payment verification successful:', result);
           onSuccess(result);
         } catch (err) {
+          console.error('Payment verification failed:', err);
           onError(err.response?.data?.error || 'Payment verification failed');
         }
       },
       prefill: {
-        name: "",
-        email: "",
-        contact: ""
+        name: orderData.user_name || '',
+        email: orderData.user_email || '',
       },
       theme: {
         color: "#6200ea"

@@ -63,8 +63,8 @@ const ExtensionBridge = () => {
       }
     } else {
       // Get tokens from sessionStorage when user is available
-      const accessToken = sessionStorage.getItem('access_token');
-      const refreshToken = sessionStorage.getItem('refresh_token');
+      const accessToken = localStorage.getItem('access_token');
+      const refreshToken = localStorage.getItem('refresh_token');
       
       if (accessToken) {
         sendAuthToExtension(user, {
