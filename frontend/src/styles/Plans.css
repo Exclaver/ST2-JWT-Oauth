@@ -1,143 +1,146 @@
-.plans-container {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  .plans-title {
-    text-align: center;
-    margin-bottom: 3rem;
-    color: #ffffff;
-    font-size: 2.5rem;
-  }
-  
-  .plans-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    padding: 1rem;
-  }
-  
-  .plan-card {
-    background-color: #1f1f1f;
-    border-radius: 10px;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .plan-card:hover {
-    transform: translateY(-5px);
-  }
-  
-  .plan-header {
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  .plan-header h2 {
-    color: #ffffff;
-    margin-bottom: 1rem;
-    font-size: 1.8rem;
-  }
-  
-  .plan-price {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    gap: 0.5rem;
-  }
-  
-  .amount {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #6200ea;
-  }
-  
-  .period {
-    color: #888;
-  }
-  
-  .requests {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background-color: #2d2d2d;
-    border-radius: 8px;
-  }
-  
-  .requests .number {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #6200ea;
-    display: block;
-  }
-  
-  .requests .label {
-    color: #888;
-  }
-  
-  .plan-features ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .plan-features li {
-    padding: 0.5rem 0;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-  }
-  
-  .plan-features li::before {
-    content: "✓";
-    margin-right: 0.5rem;
-    color: #6200ea;
-  }
-  
-  .plan-button {
-    margin-top: auto;
-    background-color: #6200ea;
-    color: white;
-    border: none;
-    padding: 1rem;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .plan-button:hover {
-    background-color: #3700b3;
-  }
-  
-  .loading,
-  .error {
-    text-align: center;
-    padding: 2rem;
-    color: #ffffff;
-  }
-  
-  .error {
-    color: #ff5252;
-  }
-  
-  @media (max-width: 768px) {
-    .plans-grid {
-      grid-template-columns: 1fr;
-    }
-  
-    .plans-container {
-      padding: 1rem;
-    }
-  }
-  /* Add these styles to your existing Plans.css file */
+.p_plans-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-.success-message {
+.p_plans-title {
+  text-align: center;
+  margin-bottom: 3rem;
+  color: #ffffff;
+  font-size: 2.5rem;
+}
+
+.p_plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.p_plan-card {
+  background-color: #1f1f1f;
+  border-radius: 10px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.p_plan-card:hover {
+  transform: translateY(-5px);
+}
+
+.p_plan-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.p_plan-header h2 {
+  color: #ffffff;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+.p_plan-price {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.p_amount {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #6200ea;
+}
+
+.p_period {
+  color: #888;
+}
+
+.p_requests {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #2d2d2d;
+  border-radius: 8px;
+}
+
+.p_requests .p_number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #6200ea;
+  display: block;
+}
+
+.p_requests .p_label {
+  color: #888;
+}
+
+.p_plan-features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.p_plan-features li {
+  padding: 0.5rem 0;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+}
+
+.p_plan-features li::before {
+  content: "✓";
+  margin-right: 0.5rem;
+  color: #6200ea;
+}
+
+.p_plan-button {
+  margin-top: auto;
+  background-color: #6200ea;
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.p_plan-button:hover {
+  background-color: #3700b3;
+}
+
+.p_loading,
+.p_error {
+  text-align: center;
+  padding: 2rem;
+  color: #ffffff;
+}
+
+.p_error {
+  color: #ff5252;
+}
+
+@media (max-width: 768px) {
+  .p_plans-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .p_plans-container {
+    padding: 1rem;
+  }
+}
+
+.p_success-message {
   background-color: #0d3b0d;
   color: #ffffff;
   padding: 15px;
@@ -147,9 +150,11 @@
   border-left: 4px solid #2ecc71;
   font-weight: 500;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 5;
 }
 
-.error-message {
+.p_error-message {
   background-color: #3b0d0d;
   color: #ffffff;
   padding: 15px;
@@ -159,29 +164,19 @@
   border-left: 4px solid #e74c3c;
   font-weight: 500;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-/* Add these styles to your existing Plans.css file */
-
-.success-message {
-  background-color: #0d3b0d;
-  color: #ffffff;
-  padding: 15px;
-  margin-bottom: 2rem;
-  border-radius: 6px;
-  text-align: center;
-  border-left: 4px solid #2ecc71;
-  font-weight: 500;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 5;
 }
 
-.error-message {
-  background-color: #3b0d0d;
-  color: #ffffff;
-  padding: 15px;
-  margin-bottom: 2rem;
-  border-radius: 6px;
-  text-align: center;
-  border-left: 4px solid #e74c3c;
-  font-weight: 500;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+/* Fix for plan cards - ensure they're visible above any background elements */
+.p_plans-container * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Override any global background styles that might interfere */
+.p_plans-container {
+  position: relative;
+  background-color: #121212;
+  min-height: 100vh;
 }

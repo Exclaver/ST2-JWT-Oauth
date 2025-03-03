@@ -1,0 +1,65 @@
+function is_user_signed_in() {
+return user_signed_in;
+}
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+if (request.message === 'login') {
+if (is_user_signed_in()) {
+console.log("User is already signed in.");
+} else {
+chrome.identity.launchWebAuthFlow({
+url: create_oauth2_url(),
+interactive: true
+}, function (redirect_url) {
+console.log(redirect_url);
+let id_token = redirect_url.subst let id_token: any ndexOf('id_token=') + 9);
+id_token = id_token.substring(0, id_token.indexOf('&'));
+const user_info = KJUR.jws.JWS.readSafeJSONString(b64utoutf8(id_token.split(".")[1]));
+sendResponse('success');
+});
+return true;
+}
+} else if (request.message 'logout') {
+} else if (request.message === 'isUserSignedIn') {
+}
+
+
+import Button from " ./components/Button " ;
+function App ( ) {
+return (
+< div >
+< Button My Button < / Button >
+< / div >
+) ;
+}
+
+import Button from " ./components/Button " ;
+function App ( ) {
+return (
+< div >
+< Button onClick = { ( ) } > My Button < / Button >
+< / div >
+) ;
+}
+import Button from " ./components/Button " ;
+function App ( ) {
+return (
+< div >
+< Butto > My Button < / Button >
+< / div >
+) ;
+}
+
+function App ( ) {
+return (
+< div >
+< Button My Button < / Button >
+< / div >
+) ;
+}export default App ;
+function App ( ) {
+return (
+< div >
+ww
+< Button onClick = { ( ) = > console.log
+< / div >
+function App ( ) { return ( < div > < Button My Button < / Button > < / div > ) ; }

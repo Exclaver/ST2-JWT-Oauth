@@ -57,12 +57,8 @@ const Account = () => {
           );
         });
       }
-
-      // Clear local storage
-      localStorage.removeItem('oauth_token');
-      localStorage.removeItem('user');
       
-      // Handle website logout
+      // Use the AuthContext logout function which properly handles everything
       await logout();
       
       // Redirect to home page
@@ -204,6 +200,7 @@ const Account = () => {
                   <th>Amount</th>
                   <th>Status</th>
                   <th>Payment ID</th>
+                  <th>Payment Method</th>
                 </tr>
               </thead>
               <tbody>
@@ -218,6 +215,7 @@ const Account = () => {
                       </span>
                     </td>
                     <td className="account-payment-id">{payment.razorpay_payment_id}</td>
+                    <td>{payment.payment_method}</td>
                   </tr>
                 ))}
               </tbody>

@@ -1,55 +1,91 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authAPI } from '../api'; // Add this import
+import { authAPI } from '../api';
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);  // Add loading state
 
   useEffect(() => {
-    // Check if user data exists in localStorage on app load
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
-    }
+    const initAuth = async () => {
+      try {
+        // Check for token first (this is what API uses for auth)
+        const token = localStorage.getItem('access_token');
+        
+        if (token) {
+          // Try to get user profile with token to verify it's valid
+          try {
+            console.log("Found token, verifying by fetching profile...");
+            const userData = await authAPI.getProfile();
+            console.log("Token valid, setting user:", userData);
+            
+            // Set user in state and localStorage
+            setUser(userData);
+            setIsAuthenticated(true);
+            localStorage.setItem('user', JSON.stringify(userData));
+          } catch (err) {
+            console.error("Token invalid:", err);
+            // Token invalid, clear everything
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+          }
+        } else {
+          console.log("No access token found");
+        }
+      } catch (err) {
+        console.error("Auth initialization error:", err);
+      } finally {
+        setLoading(false);  // Always mark loading as complete
+      }
+    };
+
+    initAuth();
   }, []);
 
   const login = (userData) => {
     setUser(userData);
     setIsAuthenticated(true);
     localStorage.setItem('user', JSON.stringify(userData));
+   
   };
 
   const logout = async () => {
     try {
-        // Logout from backend
-        await authAPI.logout();
-        
-        // Clear local storage
-        localStorage.removeItem('oauth_token');
-        
-        // Update context state
-        setState({
-            isAuthenticated: false,
-            user: null,
-            token: null
-        });
+      // Logout from backend
+      await authAPI.logout();
+      
+      // Clear all auth data
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      
+      // Update context state
+      setIsAuthenticated(false);
+      setUser(null);
 
-        // Notify extension
-        if (chrome?.runtime?.sendMessage) {
-            chrome.runtime.sendMessage(
-                'lamomcdfocoklbenmamelleakhmpodge',
-                { action: 'logout' }
-            );
-        }
+      // Notify extension
+      if (chrome?.runtime?.sendMessage) {
+        chrome.runtime.sendMessage(
+          'lamomcdfocoklbenmamelleakhmpodge',
+          { action: 'logout' }
+        );
+      }
     } catch (error) {
-        console.error('Logout error:', error);
+      console.error('Logout error:', error);
     }
-};
+  };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isAuthenticated,
+      loading,  // Export loading state
+      login, 
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -40,9 +40,10 @@ class Payment(models.Model):
     razorpay_payment_id = models.CharField(max_length=100)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, default='pending')
+    payment_method = models.CharField(max_length=20, null=True, blank=True)  # Add this field
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # payment methiod
+    
     # currency
 
     def __str__(self):

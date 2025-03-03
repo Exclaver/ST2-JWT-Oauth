@@ -27,7 +27,7 @@ const Plans = () => {
   }, []);
 
   const handlePlanSelect = async (plan) => {
-    console.log('Plan selection initiated:', plan);  // Log plan selection
+    console.log('Plan selection initiated:', plan);
     
     if (plan.name === 'Free/Trial') {
       console.log('Free plan selected, skipping payment');
@@ -62,7 +62,7 @@ const Plans = () => {
         },
         // Error handler
         (errorMsg) => {
-          console.error('Payment failed:', errorMsg);  // Log payment failure
+          console.error('Payment failed:', errorMsg);
           setProcessingPlanId(null);
           setPaymentError(errorMsg);
           
@@ -73,45 +73,45 @@ const Plans = () => {
         }
       );
     } catch (error) {
-      console.error('Payment process error:', error);  // Log any caught errors
+      console.error('Payment process error:', error);
       setProcessingPlanId(null);
       setPaymentError('Failed to initiate payment');
     }
-};
+  };
 
-  if (loading) return <div className="loading">Loading plans...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (loading) return <div className="p_loading">Loading plans...</div>;
+  if (error) return <div className="p_error">{error}</div>;
 
   return (
-    <div className="plans-container">
-      <h1 className="plans-title">Choose Your Plan</h1>
+    <div className="p_plans-container">
+      <h1 className="p_plans-title">Choose Your Plan</h1>
       
       {paymentSuccess && (
-        <div className="success-message">
+        <div className="p_success-message">
           {paymentSuccess.message}
         </div>
       )}
       
       {paymentError && (
-        <div className="error-message">
+        <div className="p_error-message">
           {paymentError}
         </div>
       )}
       
-      <div className="plans-grid">
+      <div className="p_plans-grid">
         {plans.map((plan) => (
-          <div key={plan.id} className={`plan-card ${plan.name.toLowerCase()}`}>
-            <div className="plan-header">
+          <div key={plan.id} className={`p_plan-card ${plan.name.toLowerCase().replace(/\//g, '-')}`}>
+            <div className="p_plan-header">
               <h2>{plan.name}</h2>
-              <div className="plan-price">
-                <span className="amount">${plan.price}</span>
-                <span className="period">/month</span>
+              <div className="p_plan-price">
+                <span className="p_amount">${plan.price}</span>
+                <span className="p_period">/month</span>
               </div>
             </div>
-            <div className="plan-features">
-              <div className="requests">
-                <span className="number">{plan.requests_per_month}</span>
-                <span className="label">requests/month</span>
+            <div className="p_plan-features">
+              <div className="p_requests">
+                <span className="p_number">{plan.requests_per_month}</span>
+                <span className="p_label">requests/month</span>
               </div>
               <ul>
                 {plan.name === 'Free/Trial' && [
@@ -133,7 +133,7 @@ const Plans = () => {
               </ul>
             </div>
             <button 
-              className="plan-button"
+              className="p_plan-button"
               onClick={() => handlePlanSelect(plan)}
               disabled={processingPlanId === plan.id}
             >

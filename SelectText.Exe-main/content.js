@@ -4,7 +4,87 @@ let isSelecting = false;
 let selectionStart = { x: 0, y: 0 };
 let selectionOverlay = null;
 let isSignInPopupVisible = false;
+let protectiveOverlay = null;
 
+function toggleProtectiveOverlay(video, show) {
+  // Remove existing overlay if any
+  if (protectiveOverlay) {
+    protectiveOverlay.remove();
+    protectiveOverlay = null;
+  }
+  
+  if (show) {
+    const videoRect = video.getBoundingClientRect();
+    
+    // Find the toggle switch container
+    const toggleContainer = video.parentElement.querySelector('.container');
+    
+    // Create our overlay
+    protectiveOverlay = document.createElement('div');
+    
+    Object.assign(protectiveOverlay.style, {
+      position: 'absolute',
+      top: videoRect.top + 'px',
+      left: videoRect.left + 'px',
+      width: videoRect.width + 'px',
+      height: videoRect.height + 'px',
+      zIndex: '999997',
+      background: 'transparent',
+      cursor: 'text',
+      pointerEvents: 'none' // Keep pointer events disabled on the overlay
+    });
+    
+    // Store original video pointer-events style
+    video.dataset.originalPointerEvents = video.style.pointerEvents || '';
+    
+    // Disable pointer events on the video
+    video.style.pointerEvents = 'none';
+    
+    // Make sure the toggle switch is clickable and stays in the right state
+    if (toggleContainer) {
+      // Make the toggle and its container clickable
+      toggleContainer.style.pointerEvents = 'auto';
+      toggleContainer.style.zIndex = '1000002';
+      
+      // Ensure the checkbox state matches our show parameter
+      const toggleInput = toggleContainer.querySelector('input[type="checkbox"]');
+      if (toggleInput && !toggleInput.checked) {
+        toggleInput.checked = show;
+      }
+      
+      // Make sure all children are clickable too
+      const toggleChildren = toggleContainer.querySelectorAll('*');
+      toggleChildren.forEach(child => {
+        child.style.pointerEvents = 'auto';
+      });
+    }
+    
+    document.body.appendChild(protectiveOverlay);
+  } else {
+    // Restore video's original pointer-events when overlay is removed
+    if (video && video.dataset.originalPointerEvents !== undefined) {
+      video.style.pointerEvents = video.dataset.originalPointerEvents;
+    }
+    
+    // Make sure toggle switch reflects the current state
+    const toggleContainer = video.parentElement.querySelector('.container');
+    if (toggleContainer) {
+      const toggleInput = toggleContainer.querySelector('input[type="checkbox"]');
+      if (toggleInput) {
+        toggleInput.checked = false;
+      }
+    }
+    
+    // Hide all word overlays since we're turning off
+    const wordOverlays = document.querySelectorAll('.word-overlay');
+    wordOverlays.forEach(overlay => {
+      overlay.style.display = 'none';
+    });
+    
+    // Update global state
+    textVisible = false;
+  }
+}
 // Add at the top of content.js
 async function checkAuthStatus() {
   return new Promise((resolve) => {
@@ -97,9 +177,11 @@ function initializeTextSelection() {
         right: parseInt(selectionOverlay.style.left) + parseInt(selectionOverlay.style.width),
         bottom: parseInt(selectionOverlay.style.top) + parseInt(selectionOverlay.style.height)
       };
-
-      const selectedText = [];
+    
+      // Store selected words with their position data
+      const selectedWords = [];
       const wordOverlays = document.querySelectorAll('.word-overlay');
+      
       wordOverlays.forEach(overlay => {
         const rect = overlay.getBoundingClientRect();
         
@@ -107,14 +189,57 @@ function initializeTextSelection() {
             rect.right > selectionBounds.left &&
             rect.top < selectionBounds.bottom &&
             rect.bottom > selectionBounds.top) {
-          selectedText.push(overlay.getAttribute('data-text'));
+            
+          // Store each word with its position data
+          selectedWords.push({
+            text: overlay.getAttribute('data-text'),
+          line: parseInt(overlay.getAttribute('data-line') || '0'),
+          addSpaceBefore: overlay.hasAttribute('data-add-space'),
+          y: rect.top,
+          x: rect.left
+          });
+          
+          // Highlight the background and change text color
+          overlay.style.backgroundColor = '#4287f5';
+          const textSpan = overlay.querySelector('.overlay-text');
+          if (textSpan) {
+            textSpan.style.color = 'black';
+          }
+        } else {
+          overlay.style.backgroundColor = 'rgb(0, 0, 0)';
+          const textSpan = overlay.querySelector('.overlay-text');
+          if (textSpan) {
+            textSpan.style.color = 'white';
+          }
         }
-        overlay.style.backgroundColor = 'rgb(0, 0, 0)';
-        overlay.style.color = 'white';
       });
-
-      if (selectedText.length > 0) {
-        const textToCopy = selectedText.join(' ');
+  
+      if (selectedWords.length > 0) {
+        // First, sort words by line and x position
+        selectedWords.sort((a, b) => {
+          if (a.line !== b.line) return a.line - b.line;
+          return a.x - b.x;
+        });
+        
+        // Build text with proper spacing
+        let textToCopy = '';
+        let currentLine = -1;
+        
+        selectedWords.forEach(word => {
+          // Add newline if this is a new line
+          if (word.line !== currentLine) {
+            if (currentLine !== -1) {
+              textToCopy += '\n';
+            }
+            currentLine = word.line;
+          } else if (word.addSpaceBefore) {
+            // Add space if needed and we're on the same line
+            textToCopy += ' ';
+          }
+          
+          // Add the word text
+          textToCopy += word.text;
+        });
         
         // Store video states before copying
         const videos = document.querySelectorAll('video');
@@ -130,7 +255,7 @@ function initializeTextSelection() {
             video.pause();
           }
         });
-
+  
         navigator.clipboard.writeText(textToCopy).then(() => {
           // Show feedback
           const feedback = document.createElement('div');
@@ -172,7 +297,7 @@ function initializeTextSelection() {
           });
         });
       }
-
+  
       // Remove selection overlay
       selectionOverlay.remove();
       selectionOverlay = null;
@@ -461,14 +586,127 @@ async function processScreenshot(video) {
       }
 
       if (responseData.responses && responseData.responses[0] && responseData.responses[0].textAnnotations) {
-        const words = responseData.responses[0].textAnnotations.slice(1).map((annotation) => ({
-          text: annotation.description,
-          y: annotation.boundingPoly.vertices[0].y / scale + videoRect.top,
-          x: annotation.boundingPoly.vertices[0].x / scale + videoRect.left,
-          height: (annotation.boundingPoly.vertices[2].y - annotation.boundingPoly.vertices[0].y) / scale,
-          width: (annotation.boundingPoly.vertices[2].x - annotation.boundingPoly.vertices[0].x) / scale,
-        }));
-        resolve(words);
+        // Get all annotations except the first one (which is the full text)
+        const annotations = responseData.responses[0].textAnnotations.slice(1);
+        
+        // Convert annotations to word objects with additional properties
+        const words = annotations.map((annotation) => {
+          // Calculate positions and dimensions
+          const x = annotation.boundingPoly.vertices[0].x / scale;
+          const y = annotation.boundingPoly.vertices[0].y / scale;
+          const width = (annotation.boundingPoly.vertices[2].x - annotation.boundingPoly.vertices[0].x) / scale;
+          const height = (annotation.boundingPoly.vertices[2].y - annotation.boundingPoly.vertices[0].y) / scale;
+          
+          return {
+            text: annotation.description,
+            y: y + videoRect.top,
+            x: x + videoRect.left,
+            height: height,
+            width: width,
+            right: x + width + videoRect.left,
+            bottom: y + height + videoRect.top,
+            originalY: y,
+            originalX: x,
+            originalRight: x + width  // Add right edge position for easier gap calculations
+          };
+        });
+        
+        // Sort words by vertical position first, then horizontal
+        words.sort((a, b) => {
+          // Group words into lines based on vertical position
+          const lineThreshold = Math.min(a.height, b.height) * 0.5;
+          const yDiff = Math.abs(a.originalY - b.originalY);
+          
+          if (yDiff < lineThreshold) {
+            // Same line, sort left to right
+            return a.originalX - b.originalX;
+          }
+          // Different lines, sort top to bottom
+          return a.originalY - b.originalY;
+        });
+        
+        // Process words to add spaces and line breaks
+        const processedWords = [];
+        let currentLine = -1;
+        let lastWord = null;
+        let lineWords = [];
+        
+        // First pass: group words into lines and assign line numbers
+        words.forEach((word, index) => {
+          const lineThreshold = lastWord ? Math.min(word.height, lastWord.height) * 0.5 : 0;
+          const isNewLine = lastWord && Math.abs(word.originalY - lastWord.originalY) >= lineThreshold;
+          
+          if (isNewLine || index === 0) {
+            // Process previous line if it exists
+            if (lineWords.length > 0) {
+              analyzeLineGaps(lineWords);
+            }
+            
+            // Start new line
+            currentLine++;
+            lineWords = [word];
+          } else {
+            // Add to current line
+            lineWords.push(word);
+          }
+          
+          word.line = currentLine;
+          processedWords.push(word);
+          lastWord = word;
+        });
+        
+        // Process the last line
+        if (lineWords.length > 0) {
+          analyzeLineGaps(lineWords);
+        }
+        
+        // Function to analyze gaps within a line
+        function analyzeLineGaps(lineWords) {
+          if (lineWords.length <= 1) return;
+          
+          // Calculate gaps between consecutive words
+          const gaps = [];
+          for (let i = 1; i < lineWords.length; i++) {
+            const gap = lineWords[i].originalX - lineWords[i-1].originalRight;
+            gaps.push({
+              index: i,
+              gap: gap,
+              leftWord: lineWords[i-1],
+              rightWord: lineWords[i]
+            });
+          }
+          
+          if (gaps.length === 0) return;
+          
+          // Sort gaps by size
+          gaps.sort((a, b) => a.gap - b.gap);
+          
+          // Calculate statistics for gaps
+          const median = gaps[Math.floor(gaps.length / 2)].gap;
+          
+          // Calculate mean of non-outlier gaps (those not significantly larger than median)
+          const normalGaps = gaps.filter(g => g.gap <= median * 2);
+          const meanNormal = normalGaps.reduce((sum, g) => sum + g.gap, 0) / normalGaps.length;
+          
+          // Standard deviation of normal gaps
+          const stdDev = Math.sqrt(
+            normalGaps.reduce((sum, g) => sum + Math.pow(g.gap - meanNormal, 2), 0) / normalGaps.length
+          );
+          
+          // Determine threshold for spaces
+          // Use a dynamic threshold based on gap statistics
+          const spaceThreshold = meanNormal + stdDev * 1.2;
+          
+          // Apply space decisions to words
+          gaps.forEach(g => {
+            // Only add space if gap exceeds our threshold
+            if (g.gap > spaceThreshold) {
+              lineWords[g.index].addSpaceBefore = true;
+            }
+          });
+        }
+        
+        resolve(processedWords);
       } else {
         console.error('No text recognized in the image');
         resolve(null);
@@ -559,6 +797,13 @@ toggleSwitch.addEventListener('change', async (event) => {
     createWordOverlays(words);
     hasProcessedOCR = true;
     initializeTextSelection();
+    toggleProtectiveOverlay(video, true);
+  }else if (event.target.checked && hasProcessedOCR) {
+    // If just toggling visibility ON
+    toggleProtectiveOverlay(video, true);
+  } else {
+    // If toggling OFF
+    toggleProtectiveOverlay(video, false);
   }
 
   // Toggle visibility
@@ -581,6 +826,8 @@ toggleSwitch.addEventListener('change', async (event) => {
     toggleSwitch.checked = false;
     const wordOverlays = document.querySelectorAll('.word-overlay');
     wordOverlays.forEach(overlay => overlay.remove());
+      toggleProtectiveOverlay(video, false);
+
   };
 
   // Video state event listeners
@@ -627,15 +874,26 @@ toggleSwitch.addEventListener('change', async (event) => {
 }
 
 // Helper function to create word overlays
+// Helper function to create word overlays with fully stretched text
 function createWordOverlays(words) {
   const scrollX = window.scrollX;
   const scrollY = window.scrollY;
 
   words.forEach(box => {
+    // Create the container div
     const wordDiv = document.createElement('div');
     wordDiv.className = 'word-overlay';
-    wordDiv.textContent = box.text;
     wordDiv.setAttribute('data-text', box.text);
+    if (box.line !== undefined) {
+      wordDiv.setAttribute('data-line', box.line);
+    }
+    
+    // Store spacing information
+    if (box.addSpaceBefore === true) {
+      wordDiv.setAttribute('data-add-space', 'true');
+    }
+    
+    // Position and size the container
     Object.assign(wordDiv.style, {
       position: 'absolute',
       top: (box.y + scrollY) + 'px',
@@ -643,21 +901,66 @@ function createWordOverlays(words) {
       width: box.width + 'px',
       height: box.height + 'px',
       backgroundColor: 'rgb(0, 0, 0)',
-      color: 'white',
-      fontSize: (box.height * 0.9) + 'px',
       display: 'flex',
-      alignItems: 'center',
       justifyContent: 'center',
+      alignItems: 'center',
       overflow: 'hidden',
-      whiteSpace: 'pre-wrap',
-      wordWrap: 'break-word',
-      textAlign: 'center',
+      padding: '0',
+      margin: '0',
+      zIndex: 999999,
       cursor: 'text',
-      fontstretch: 'expanded',
-      zIndex: 999999
+      border: '1px solid #a64dff'
     });
+    
+    // Create the text span that will be stretched
+    const textSpan = document.createElement('span');
+    textSpan.textContent = box.text;
+    textSpan.className = 'overlay-text';
+    
+    // Initial style for the text
+    Object.assign(textSpan.style, {
+      display: 'block',
+      color: 'white',
+      fontFamily: 'Arial, sans-serif',
+      fontWeight: 'bold',
+      // textTransform: 'uppercase',
+      whiteSpace: 'nowrap',
+      fontSize: '10px', // Start small
+      position: 'absolute',
+      transformOrigin: 'center'
+    });
+    
+    
+    // Add the text span to the container
+    wordDiv.appendChild(textSpan);
     document.body.appendChild(wordDiv);
+    
+    // Now stretch the text to fill the container
+    stretchTextToFit(textSpan, box.width, box.height);
   });
+}
+
+// Helper function to stretch text to fit container
+function stretchTextToFit(textElement, containerWidth, containerHeight) {
+  let fontSize = 10; // Start with a small font size
+  textElement.style.fontSize = fontSize + 'px';
+  
+  // Increase font size until it overflows
+  while (textElement.scrollWidth <= containerWidth && textElement.scrollHeight <= containerHeight && fontSize < 1000) {
+    fontSize++;
+    textElement.style.fontSize = fontSize + 'px';
+  }
+  
+  // Reduce by one to prevent overflow
+  fontSize--;
+  textElement.style.fontSize = fontSize + 'px';
+  
+  // Calculate scale factors to stretch text to fill container
+  const scaleX = containerWidth / textElement.scrollWidth;
+  const scaleY = containerHeight / textElement.scrollHeight;
+  
+  // Apply the stretch transformation
+  textElement.style.transform = `scale(${scaleX}, ${scaleY})`;
 }
 // Initialize toggle switches for existing videos
 async function initializeVideoControls() {
@@ -709,37 +1012,64 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   
   if (request.action === 'overlayWords') {
     await injectCSS();
-
+  
     const scale = window.devicePixelRatio;
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
-
+  
     request.boxes.forEach(box => {
+      // Create container div
       const wordDiv = document.createElement('div');
       wordDiv.className = 'word-overlay';
-      wordDiv.textContent = box.text;
+      wordDiv.setAttribute('data-text', box.text);
+      
+      const boxWidth = box.width / scale;
+      const boxHeight = box.height / scale;
+      
+      // Position and size the container
       Object.assign(wordDiv.style, {
         position: 'absolute',
         top: (box.y / scale + scrollY) + 'px',
         left: (box.x / scale + scrollX) + 'px',
-        width: (box.width / scale) + 'px',
-        height: (box.height / scale) + 'px',
+        width: boxWidth + 'px',
+        height: boxHeight + 'px',
         backgroundColor: 'rgb(0, 0, 0)',
-        color: 'white',
-        fontSize: (box.height / scale * 0.9) + 'px',
         display: 'flex',
-        alignItems: 'center',
         justifyContent: 'center',
+        alignItems: 'center',
         overflow: 'hidden',
-        whiteSpace: 'pre-wrap',
-        wordWrap: 'break-word',
-        textAlign: 'center',
-        cursor: 'text',
-        fontstretch: 'expanded',
-        zIndex: 999999
+        padding: '0',
+        margin: '0',
+        zIndex: 999999,
+        cursor: 'text'
       });
+      
+      // Create the text span that will be stretched
+      const textSpan = document.createElement('span');
+      textSpan.textContent = box.text;
+      textSpan.className = 'overlay-text';
+      
+      // Initial style for the text
+      Object.assign(textSpan.style, {
+        display: 'block',
+        color: 'white',
+        fontFamily: 'Arial, sans-serif',
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        whiteSpace: 'nowrap',
+        fontSize: '10px', // Start small
+        position: 'absolute',
+        transformOrigin: 'center'
+      });
+      
+      // Add the text span to the container
+      wordDiv.appendChild(textSpan);
       document.body.appendChild(wordDiv);
+      
+      // Now stretch the text to fit the container
+      stretchTextToFit(textSpan, boxWidth, boxHeight);
     });
+  
 
     // Reinitialize video controls after adding overlays
     const videos = document.querySelectorAll('video');

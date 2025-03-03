@@ -5,15 +5,39 @@ import { paymentAPI } from '../api';
 
 // Load the Razorpay script dynamically
 export const loadRazorpay = () => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    // Check if Razorpay is already loaded
+    if (window.Razorpay) {
+      console.log("Razorpay already loaded");
+      return resolve(true);
+    }
+    
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
+    script.async = true;
+    script.defer = true;
+    
+    // Add timeout
+    const timeout = setTimeout(() => {
+      reject(new Error("Razorpay script loading timed out"));
+    }, 10000); // 10 seconds timeout
+    
+    // Define onload only once
+    script.onload = () => {
+      clearTimeout(timeout);
+      console.log("Razorpay script loaded successfully");
+      resolve(true);
+    };
+    
+    script.onerror = () => {
+      clearTimeout(timeout);
+      console.error("Failed to load Razorpay script");
+      reject(new Error("Failed to load Razorpay script"));
+    };
+    
     document.body.appendChild(script);
   });
 };
-
 // Open Razorpay checkout directly
 export const processPayment = async (planId, onSuccess, onError) => {
   try {

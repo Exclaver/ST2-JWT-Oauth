@@ -56,11 +56,13 @@ def razorpay_webhook(request):
             # Handle failed payment
             payment_id = webhook_data['payload']['payment']['entity']['id']
             order_id = webhook_data['payload']['payment']['entity']['order_id']
+            method = webhook_data['payload']['payment']['entity']['method']
             
             try:
                 payment = Payment.objects.get(razorpay_order_id=order_id)
                 payment.status = 'failed'
                 payment.razorpay_payment_id = payment_id
+                payment.payment_method=method
                 payment.save()
                 
                 # You might want to revert any credits or plan changes here
@@ -72,12 +74,14 @@ def razorpay_webhook(request):
             # Handle successful payment authorization
             payment_id = webhook_data['payload']['payment']['entity']['id']
             order_id = webhook_data['payload']['payment']['entity']['order_id']
+            method=webhook_data['payload']['payment']['entity']['method']
             
             try:
                 payment = Payment.objects.get(razorpay_order_id=order_id)
                 if payment.status == 'pending':
                     payment.status = 'completed'
                     payment.razorpay_payment_id = payment_id
+                    payment.payment_method=method
                     payment.save()
                     
                     # Update user's plan and credits here
@@ -355,6 +359,7 @@ def account(request):
             'status': payment.status,
             'date': payment.created_at.isoformat(),
             'razorpay_payment_id': payment.razorpay_payment_id,
+            'payment_method': payment.payment_method or 'Unknown',
         } for payment in payments]
         
         return Response({

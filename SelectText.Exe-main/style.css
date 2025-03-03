@@ -26,23 +26,49 @@
   top: 0;
   left: 0;
   height: 1.3em;
-  width: 1.3em;
-  background-color: black;
+  width: 2.6em; /* Wider for pill shape */
+  background-color: #222222;
   border-radius: 50px;
-  transition: all 0.7s;
+  /* border: 1px solid #a64dff; */
+  transition: all 0.4s ease;
   --spread: 20px;
+  /* box-shadow: 0 0 8px rgba(166, 77, 255, 0.5); */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Add this to create the toggle knob */
+.checkmark:before {
+  content: "";
+  position: absolute;
+  height: 1em;
+  width: 1em;
+  border-radius: 50%;
+  background-color: #a64dff;
+  transition: all 0.4s ease;
+  left: 0.15em;
+}
+
+/* Move the knob when checked */
+.container input:checked ~ .checkmark:before {
+  left: calc(100% - 1.15em);
+  background-color: white;
+}
+
+/* Change background when checked */
+.container input:checked ~ .checkmark {
+  background-color: #a64dff;
 }
 
 .container input:checked ~ .checkmark {
-  background-color: black;
+  background-color: #222222;
+  border: 1px solid #a64dff;
   box-shadow: 
-    -10px -10px var(--spread) 0px #5B51D8,
-    0 -10px var(--spread) 0px #833AB4,
-    10px -10px var(--spread) 0px #E1306C,
-    10px 0 var(--spread) 0px #FD1D1D,
-    10px 10px var(--spread) 0px #F77737,
-    0 10px var(--spread) 0px #FCAF45,
-    -10px 10px var(--spread) 0px #FFDC80;
+    0 0 15px 2px rgba(166, 77, 255, 0.7),
+    0 0 30px 5px rgba(166, 77, 255, 0.4),
+    inset 0 0 5px rgba(166, 77, 255, 0.5);
+  transition: all 0.4s ease;
 }
 
 .checkmark:after {

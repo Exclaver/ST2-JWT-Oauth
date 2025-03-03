@@ -68,6 +68,9 @@ export const authAPI = {
     const response = await api.post('/api/auth/callback/', credentials);
     if (response.data.tokens) {
       TokenService.setTokens(response.data.tokens);
+      if (response.data.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
     }
     return response.data;
   },
@@ -87,6 +90,9 @@ export const authAPI = {
     
     if (response.data.access) {
       localStorage.setItem('access_token', response.data.access);
+      if (response.data.refresh) {
+        localStorage.setItem('refresh_token', response.data.refresh);
+      }
     }
     return response.data;
   },
