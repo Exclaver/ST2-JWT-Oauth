@@ -93,7 +93,8 @@ function handleAuthData(request, sendResponse) {
             isAuthenticated: true,
             access_token: request.token,
             refresh_token: request.refreshToken,
-            user: request.user
+            user: request.user,
+            userProfile: request.user  ,
         }, () => {
             chrome.action.setPopup({ popup: 'popup.html' });
             updateBadge(true);

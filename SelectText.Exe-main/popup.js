@@ -9,7 +9,11 @@ document.addEventListener("DOMContentLoaded", function () {
     
     const screenshotButton = document.getElementById("screenshotButton");
     const toggleButton = document.getElementById("toggleButton");
-    
+    const profileIcon = document.getElementById("profileIcon");
+    profileIcon.addEventListener("click", function() {
+        // Replace with your actual account page URL
+        window.open('http://localhost:5173/account/', '_blank');
+    });    
 
     screenshotButton.addEventListener("click", function () {
       chrome.runtime.sendMessage(

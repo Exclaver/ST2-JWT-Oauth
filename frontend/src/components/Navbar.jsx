@@ -4,8 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import '../styles/Navbar.css';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -29,22 +28,11 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogoutClick = () => {
-    setShowLogoutConfirm(true);
-  };
+  
 
-  const handleLogoutConfirm = async () => {
-    try {
-      await logout();
-      setShowLogoutConfirm(false);
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
+  
 
-  const handleLogoutCancel = () => {
-    setShowLogoutConfirm(false);
-  };
+  
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -96,11 +84,7 @@ const Navbar = () => {
                 My Account
               </NavLink>
             </li>
-            <li style={{"--i": 5}}>
-              <button className="logout-btn" onClick={handleLogoutClick}>
-                Logout
-              </button>
-            </li>
+            
           </>
         ) : (
           <li style={{"--i": 4}}>
@@ -111,22 +95,7 @@ const Navbar = () => {
         )}
       </ul>
 
-      {showLogoutConfirm && (
-        <div className="logout-confirm-overlay">
-          <div className="logout-confirm-modal">
-            <h3>Confirm Logout</h3>
-            <p>Are you sure you want to log out of your account?</p>
-            <div className="logout-confirm-buttons">
-              <button className="confirm-btn" onClick={handleLogoutConfirm}>
-                Yes, Logout
-              </button>
-              <button className="cancel-btn" onClick={handleLogoutCancel}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      
     </nav>
   );
 };

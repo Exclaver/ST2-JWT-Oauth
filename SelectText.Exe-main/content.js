@@ -18,20 +18,49 @@ function toggleProtectiveOverlay(video, show) {
     
     // Find the toggle switch container
     const toggleContainer = video.parentElement.querySelector('.container');
+    let toggleRect = null;
     
-    // Create our overlay
+    if (toggleContainer) {
+      toggleRect = toggleContainer.getBoundingClientRect();
+    }
+    
+    // Create our overlay - note we add it to video.parentElement, not document.body
     protectiveOverlay = document.createElement('div');
     
     Object.assign(protectiveOverlay.style, {
       position: 'absolute',
-      top: videoRect.top + 'px',
-      left: videoRect.left + 'px',
-      width: videoRect.width + 'px',
-      height: videoRect.height + 'px',
-      zIndex: '999997',
+      top: '0',
+      left: '0',
+      width: '100%',
+      height: '100%',
+      zIndex: '999995', // Lower than word overlays (999995) but higher than video
       background: 'transparent',
       cursor: 'text',
-      pointerEvents: 'none' // Keep pointer events disabled on the overlay
+      pointerEvents: 'auto'
+    });
+    
+    // Add event listener to create "hole" for toggle button
+    protectiveOverlay.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent clicks from reaching the video
+      
+      // If we have a toggle container and the click is within its bounds, 
+      // we should not prevent default to allow the toggle to work
+      if (toggleContainer && toggleRect) {
+        const clickX = e.clientX;
+        const clickY = e.clientY;
+        
+        // Check if click is within the toggle button bounds
+        if (clickX >= toggleRect.left && clickX <= toggleRect.right &&
+            clickY >= toggleRect.top && clickY <= toggleRect.bottom) {
+          // Allow the click event to bubble up to the toggle
+          return true;
+        }
+      }
+      
+      // Otherwise, prevent default to stop video from playing/pausing
+      e.stopPropagation();
+  e.preventDefault();
+  return false;
     });
     
     // Store original video pointer-events style
@@ -40,33 +69,29 @@ function toggleProtectiveOverlay(video, show) {
     // Disable pointer events on the video
     video.style.pointerEvents = 'none';
     
-    // Make sure the toggle switch is clickable and stays in the right state
+    // Ensure clickable toggle switch
     if (toggleContainer) {
-      // Make the toggle and its container clickable
       toggleContainer.style.pointerEvents = 'auto';
       toggleContainer.style.zIndex = '1000002';
       
-      // Ensure the checkbox state matches our show parameter
       const toggleInput = toggleContainer.querySelector('input[type="checkbox"]');
       if (toggleInput && !toggleInput.checked) {
         toggleInput.checked = show;
       }
       
-      // Make sure all children are clickable too
       const toggleChildren = toggleContainer.querySelectorAll('*');
       toggleChildren.forEach(child => {
         child.style.pointerEvents = 'auto';
       });
     }
     
-    document.body.appendChild(protectiveOverlay);
+    // Add to video's parent, not document.body
+    video.parentElement.appendChild(protectiveOverlay);
   } else {
-    // Restore video's original pointer-events when overlay is removed
     if (video && video.dataset.originalPointerEvents !== undefined) {
       video.style.pointerEvents = video.dataset.originalPointerEvents;
     }
     
-    // Make sure toggle switch reflects the current state
     const toggleContainer = video.parentElement.querySelector('.container');
     if (toggleContainer) {
       const toggleInput = toggleContainer.querySelector('input[type="checkbox"]');
@@ -75,13 +100,15 @@ function toggleProtectiveOverlay(video, show) {
       }
     }
     
-    // Hide all word overlays since we're turning off
-    const wordOverlays = document.querySelectorAll('.word-overlay');
-    wordOverlays.forEach(overlay => {
-      overlay.style.display = 'none';
-    });
+    // Hide word overlays for this specific video only
+    if (video.dataset.overlayContainerId) {
+      const containerSelector = `#${video.dataset.overlayContainerId} .word-overlay`;
+      const wordOverlays = document.querySelectorAll(containerSelector);
+      wordOverlays.forEach(overlay => {
+        overlay.style.display = 'none';
+      });
+    }
     
-    // Update global state
     textVisible = false;
   }
 }
@@ -100,7 +127,7 @@ function initializeTextSelection() {
       position: fixed;
       background: rgba(66, 135, 245, 0.2);
       border: 1px solid #4287f5;
-      pointer-events: none;
+      pointer-events: auto;
       z-index: 999998;
     }
   `;
@@ -111,18 +138,26 @@ function initializeTextSelection() {
 
   document.addEventListener('mousedown', (e) => {
     if (e.button === 0 && textVisible && hasProcessedOCR) {
+      e.preventDefault();
+      e.stopPropagation();
       isSelecting = true;
       selectionStart = { x: e.clientX, y: e.clientY };
       
       // Create selection overlay
       selectionOverlay = document.createElement('div');
       selectionOverlay.className = 'selection-overlay';
+      selectionOverlay.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
       document.body.appendChild(selectionOverlay);
     }
   });
 
   document.addEventListener('mousemove', (e) => {
     if (isSelecting && selectionOverlay) {
+      e.preventDefault();
+      e.stopPropagation();
       const currentPos = { x: e.clientX, y: e.clientY };
       
       // Calculate selection rectangle
@@ -288,6 +323,16 @@ function initializeTextSelection() {
           feedback.textContent = 'Text copied!';
           document.body.appendChild(feedback);
           
+            const allWordOverlays = document.querySelectorAll('.word-overlay');
+            allWordOverlays.forEach(overlay => {
+              overlay.style.backgroundColor = 'rgb(0, 0, 0)';
+              const textSpan = overlay.querySelector('.overlay-text');
+              if (textSpan) {
+                textSpan.style.color = 'white';
+              }
+            });
+          
+          
           requestAnimationFrame(() => {
             feedback.style.opacity = '1';
             setTimeout(() => {
@@ -303,6 +348,15 @@ function initializeTextSelection() {
       selectionOverlay = null;
     }
   });
+  document.addEventListener('click', (e) => {
+    if (textVisible && hasProcessedOCR) {
+      const wordOverlay = e.target.closest('.word-overlay');
+      if (wordOverlay) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+  }, true); 
 }
 
 // Update the existing processScreenshot function with these changes:
@@ -585,13 +639,12 @@ async function processScreenshot(video) {
         return;
       }
 
-      if (responseData.responses && responseData.responses[0] && responseData.responses[0].textAnnotations) {
-        // Get all annotations except the first one (which is the full text)
+      if (responseData.responses?.[0]?.textAnnotations) {
+        // Extract word annotations (skip first one which is the full text)
         const annotations = responseData.responses[0].textAnnotations.slice(1);
         
-        // Convert annotations to word objects with additional properties
-        const words = annotations.map((annotation) => {
-          // Calculate positions and dimensions
+        // Convert annotations to word objects with positioning data
+        const words = annotations.map(annotation => {
           const x = annotation.boundingPoly.vertices[0].x / scale;
           const y = annotation.boundingPoly.vertices[0].y / scale;
           const width = (annotation.boundingPoly.vertices[2].x - annotation.boundingPoly.vertices[0].x) / scale;
@@ -601,106 +654,74 @@ async function processScreenshot(video) {
             text: annotation.description,
             y: y + videoRect.top,
             x: x + videoRect.left,
-            height: height,
-            width: width,
+            height, width,
             right: x + width + videoRect.left,
             bottom: y + height + videoRect.top,
             originalY: y,
             originalX: x,
-            originalRight: x + width  // Add right edge position for easier gap calculations
+            originalRight: x + width
           };
         });
         
-        // Sort words by vertical position first, then horizontal
+        // Group words into lines and sort by position
+        const lineThreshold = word => word.height * 0.5;
+        let currentLine = 0;
+        let lastWord = null;
+        let lineGroups = [];
+        
+        // Sort by vertical position first
         words.sort((a, b) => {
-          // Group words into lines based on vertical position
-          const lineThreshold = Math.min(a.height, b.height) * 0.5;
           const yDiff = Math.abs(a.originalY - b.originalY);
-          
-          if (yDiff < lineThreshold) {
-            // Same line, sort left to right
-            return a.originalX - b.originalX;
-          }
-          // Different lines, sort top to bottom
-          return a.originalY - b.originalY;
+          return yDiff < lineThreshold(a) ? a.originalX - b.originalX : a.originalY - b.originalY;
         });
         
-        // Process words to add spaces and line breaks
-        const processedWords = [];
-        let currentLine = -1;
-        let lastWord = null;
-        let lineWords = [];
-        
-        // First pass: group words into lines and assign line numbers
-        words.forEach((word, index) => {
-          const lineThreshold = lastWord ? Math.min(word.height, lastWord.height) * 0.5 : 0;
-          const isNewLine = lastWord && Math.abs(word.originalY - lastWord.originalY) >= lineThreshold;
+        // Group into lines and process each line
+        const processedWords = words.map((word, i) => {
+          const isFirstWord = i === 0;
+          const isNewLine = !isFirstWord && lastWord && 
+                           Math.abs(word.originalY - lastWord.originalY) >= lineThreshold(word);
           
-          if (isNewLine || index === 0) {
-            // Process previous line if it exists
-            if (lineWords.length > 0) {
-              analyzeLineGaps(lineWords);
+          if (isFirstWord || isNewLine) {
+            // Process previous line gaps
+            if (lineGroups.length > 1) {
+              detectSpaces(lineGroups);
             }
-            
-            // Start new line
+            lineGroups = [word];
             currentLine++;
-            lineWords = [word];
           } else {
-            // Add to current line
-            lineWords.push(word);
+            lineGroups.push(word);
           }
           
           word.line = currentLine;
-          processedWords.push(word);
           lastWord = word;
+          return word;
         });
         
-        // Process the last line
-        if (lineWords.length > 0) {
-          analyzeLineGaps(lineWords);
+        // Process final line
+        if (lineGroups.length > 1) {
+          detectSpaces(lineGroups);
         }
         
-        // Function to analyze gaps within a line
-        function analyzeLineGaps(lineWords) {
-          if (lineWords.length <= 1) return;
-          
-          // Calculate gaps between consecutive words
-          const gaps = [];
-          for (let i = 1; i < lineWords.length; i++) {
-            const gap = lineWords[i].originalX - lineWords[i-1].originalRight;
-            gaps.push({
-              index: i,
-              gap: gap,
-              leftWord: lineWords[i-1],
-              rightWord: lineWords[i]
-            });
-          }
+        // Detect spaces between words in a line
+        function detectSpaces(lineWords) {
+          // Calculate gaps between words
+          const gaps = lineWords.slice(1).map((word, i) => ({
+            index: i + 1,
+            gap: word.originalX - lineWords[i].originalRight
+          }));
           
           if (gaps.length === 0) return;
           
-          // Sort gaps by size
+          // Calculate statistics for word gaps
           gaps.sort((a, b) => a.gap - b.gap);
-          
-          // Calculate statistics for gaps
           const median = gaps[Math.floor(gaps.length / 2)].gap;
-          
-          // Calculate mean of non-outlier gaps (those not significantly larger than median)
           const normalGaps = gaps.filter(g => g.gap <= median * 2);
-          const meanNormal = normalGaps.reduce((sum, g) => sum + g.gap, 0) / normalGaps.length;
+          const mean = normalGaps.reduce((sum, g) => sum + g.gap, 0) / normalGaps.length || 0;
           
-          // Standard deviation of normal gaps
-          const stdDev = Math.sqrt(
-            normalGaps.reduce((sum, g) => sum + Math.pow(g.gap - meanNormal, 2), 0) / normalGaps.length
-          );
-          
-          // Determine threshold for spaces
-          // Use a dynamic threshold based on gap statistics
-          const spaceThreshold = meanNormal + stdDev * 1.2;
-          
-          // Apply space decisions to words
+          // Set space threshold and mark words
+          const threshold = mean * 1.5;
           gaps.forEach(g => {
-            // Only add space if gap exceeds our threshold
-            if (g.gap > spaceThreshold) {
+            if (g.gap > threshold) {
               lineWords[g.index].addSpaceBefore = true;
             }
           });
@@ -708,7 +729,7 @@ async function processScreenshot(video) {
         
         resolve(processedWords);
       } else {
-        console.error('No text recognized in the image');
+        console.error('No text recognized in image');
         resolve(null);
       }
     } catch (error) {
@@ -761,6 +782,7 @@ function createToggleSwitch(video) {
   // Inside createToggleSwitch function, update the toggle switch event listener:
 
   // Update this section in the createToggleSwitch function
+// Update this section in the createToggleSwitch function
 toggleSwitch.addEventListener('change', async (event) => {
   event.stopPropagation();
   
@@ -794,11 +816,12 @@ toggleSwitch.addEventListener('change', async (event) => {
       event.target.checked = false;
       return;
     }
-    createWordOverlays(words);
+    // Pass the video to createWordOverlays so it can add overlays to video's parent
+    createWordOverlays(words, video);
     hasProcessedOCR = true;
     initializeTextSelection();
     toggleProtectiveOverlay(video, true);
-  }else if (event.target.checked && hasProcessedOCR) {
+  } else if (event.target.checked && hasProcessedOCR) {
     // If just toggling visibility ON
     toggleProtectiveOverlay(video, true);
   } else {
@@ -806,12 +829,15 @@ toggleSwitch.addEventListener('change', async (event) => {
     toggleProtectiveOverlay(video, false);
   }
 
-  // Toggle visibility
+  // Toggle visibility based on the overlay container for this specific video
   textVisible = event.target.checked;
-  const wordOverlays = document.querySelectorAll('.word-overlay');
-  wordOverlays.forEach(overlay => {
-    overlay.style.display = textVisible ? 'flex' : 'none';
-  });
+  if (video.dataset.overlayContainerId) {
+    const containerSelector = `#${video.dataset.overlayContainerId} .word-overlay`;
+    const wordOverlays = document.querySelectorAll(containerSelector);
+    wordOverlays.forEach(overlay => {
+      overlay.style.display = textVisible ? 'flex' : 'none';
+    });
+  }
 });
 
   // Create checkmark element
@@ -875,12 +901,40 @@ toggleSwitch.addEventListener('change', async (event) => {
 
 // Helper function to create word overlays
 // Helper function to create word overlays with fully stretched text
-function createWordOverlays(words) {
+// Helper function to create word overlays with fully stretched text
+function createWordOverlays(words, video) {
   const scrollX = window.scrollX;
   const scrollY = window.scrollY;
+  
+  // Create a container for all word overlays in the video's parent element
+  const overlayContainerID = `overlay-container-${Date.now()}`;
+  const existingContainer = document.getElementById(overlayContainerID);
+  
+  let overlayContainer = existingContainer;
+  if (!overlayContainer) {
+    overlayContainer = document.createElement('div');
+    overlayContainer.id = overlayContainerID;
+    overlayContainer.className = 'word-overlays-container';
+    
+    Object.assign(overlayContainer.style, {
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      width: '100%',
+      height: '100%',
+      zIndex: '999990',
+      pointerEvents: 'none'
+    });
+    
+    // Add to the video's parent element
+    video.parentElement.appendChild(overlayContainer);
+    
+    // Store reference to the container ID in the video
+    video.dataset.overlayContainerId = overlayContainerID;
+  }
 
   words.forEach(box => {
-    // Create the container div
+    // Create the container div for each word
     const wordDiv = document.createElement('div');
     wordDiv.className = 'word-overlay';
     wordDiv.setAttribute('data-text', box.text);
@@ -893,11 +947,16 @@ function createWordOverlays(words) {
       wordDiv.setAttribute('data-add-space', 'true');
     }
     
+    // Calculate position relative to overlay container
+    const videoRect = video.getBoundingClientRect();
+    const relativeTop = box.y - videoRect.top;
+    const relativeLeft = box.x - videoRect.left;
+    
     // Position and size the container
     Object.assign(wordDiv.style, {
       position: 'absolute',
-      top: (box.y + scrollY) + 'px',
-      left: (box.x + scrollX) + 'px',
+      top: relativeTop + 'px',
+      left: relativeLeft + 'px',
       width: box.width + 'px',
       height: box.height + 'px',
       backgroundColor: 'rgb(0, 0, 0)',
@@ -907,9 +966,10 @@ function createWordOverlays(words) {
       overflow: 'hidden',
       padding: '0',
       margin: '0',
-      zIndex: 999999,
+      zIndex: '999995',
       cursor: 'text',
-      border: '1px solid #a64dff'
+      border: '1px solid #a64dff',
+      pointerEvents: 'auto' // Make words individually clickable
     });
     
     // Create the text span that will be stretched
@@ -923,7 +983,6 @@ function createWordOverlays(words) {
       color: 'white',
       fontFamily: 'Arial, sans-serif',
       fontWeight: 'bold',
-      // textTransform: 'uppercase',
       whiteSpace: 'nowrap',
       fontSize: '10px', // Start small
       position: 'absolute',
@@ -931,13 +990,15 @@ function createWordOverlays(words) {
     });
     
     
-    // Add the text span to the container
+    // Add the text span to the word div, and the word div to the overlay container
     wordDiv.appendChild(textSpan);
-    document.body.appendChild(wordDiv);
+    overlayContainer.appendChild(wordDiv);
     
     // Now stretch the text to fill the container
     stretchTextToFit(textSpan, box.width, box.height);
   });
+  
+  return overlayContainer;
 }
 
 // Helper function to stretch text to fit container
