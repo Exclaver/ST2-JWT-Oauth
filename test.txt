@@ -1,65 +1,63 @@
-function is_user_signed_in() {
-return user_signed_in;
-}
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-if (request.message === 'login') {
-if (is_user_signed_in()) {
-console.log("User is already signed in.");
-} else {
-chrome.identity.launchWebAuthFlow({
-url: create_oauth2_url(),
-interactive: true
-}, function (redirect_url) {
-console.log(redirect_url);
-let id_token = redirect_url.subst let id_token: any ndexOf('id_token=') + 9);
-id_token = id_token.substring(0, id_token.indexOf('&'));
-const user_info = KJUR.jws.JWS.readSafeJSONString(b64utoutf8(id_token.split(".")[1]));
-sendResponse('success');
-});
-return true;
-}
-} else if (request.message 'logout') {
-} else if (request.message === 'isUserSignedIn') {
-}
+ // First, sort words by line and x position
+        selectedWords.sort((a, b) => {
+          if (a.line !== b.line) return a.line - b.line;
+          return a.x - b.x;
+        });
+        
+        // Build text with proper spacing
+        let textToCopy = '';
+        let currentLine = -1;
+        
+        selectedWords.forEach(word => {
+          // Add newline if this is a new line
+          if (word.line !== currentLine) {
+            if (currentLine !== -1) {
+              textToCopy += '\n';
+            }
+            currentLine = word.line;
+          } else if (word.addSpaceBefore) {
+            // Add space if needed and we're on the same line
+            textToCopy += ' ';
+          }
+          
+          // Add the word text
+          textToCopy += word.text;
+        });
 
 
-import Button from " ./components/Button " ;
-function App ( ) {
-return (
-< div >
-< Button My Button < / Button >
-< / div >
-) ;
-}
+before:
 
-import Button from " ./components/Button " ;
-function App ( ) {
-return (
-< div >
-< Button onClick = { ( ) } > My Button < / Button >
-< / div >
-) ;
-}
-import Button from " ./components/Button " ;
-function App ( ) {
-return (
-< div >
-< Butto > My Button < / Button >
-< / div >
-) ;
-}
+return(
+<divstyle={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+<h2>useStatevsuseRef</h2>
+<p>StateCount:{count}</p>
+<buttononClick={incrementState}>IncrementState</button>
+</div>
+);
 
-function App ( ) {
+/////////3.7 thinking///////////
+return(
+<divstyle={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+<h2>useStatevsuseRef</h2>
+<p>StateCount:{count}</p>
+<buttononClick={incrementState}>IncrementState</button>
+</div>
+
+/////////////deepseek///////////
+return
+(
+<
+div
+Style
+
+///////////deepseek Normal:///////////
+return(<divstyle={{display:"flex",alignItems:'center',flexDirection:'column'}}><h2>useStatevsuseRef</h2><p>StateCount:{count}</p><buttononClick={incrementState}>IncrementState</button></div>);
+
+///////////select text/////////
 return (
-< div >
-< Button My Button < / Button >
-< / div >
-) ;
-}export default App ;
-function App ( ) {
-return (
-< div >
-ww
-< Button onClick = { ( ) = > console.log
-< / div >
-function App ( ) { return ( < div > < Button My Button < / Button > < / div > ) ; }
+<div style={{display:"flex", alignItems: 'center', flexDirection: 'column' }}>
+<h2>useState vs use Ref</h2>
+<p>State Count: {count}</p>
+<button onClick={incrementState}>Increment State</button>
+</div>
+);

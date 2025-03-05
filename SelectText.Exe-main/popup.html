@@ -1,35 +1,45 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>OCR Overlay</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <style>
-        
-    </style>
+    <title>Textify</title>
+    <link rel="stylesheet" type="text/css" href="popup-styles.css">
 </head>
-
 <body>
     <div class="header">
-        <h1>OCR Overlay</h1>
+        <h1>Textify</h1>
         <button id="screenshotButton">Take Screenshot</button>
-        <button id="toggleButton">Toggle Overlay</button>
-        <div id="profileIcon" class="profile-icon" title="Account Settings">
-            <img src="assets/default-avatar.png" alt="Profile">
-        </div>
+        <button id="accountButton" class="account-button">Account</button>
     </div>
     
+    <div class="copy-settings">
+        <h3>Copy Style</h3>
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="copyStyle" value="multiline" checked>
+                Multi-line (Default)
+            </label>
+            <label>
+                <input type="radio" name="copyStyle" value="singleline">
+                Single-line
+            </label>
+            <label>
+                <input type="radio" name="copyStyle" value="indent">
+                Code Indent
+            </label>
+        </div>
+    </div>
+
     <div id="screenshotContainer">
         <img id="screenshotImage" src="" alt="Screenshot">
     </div>
+    <button id="downloadButton" class="download-button" style="display: none;">
+        Download Screenshot
+    </button>
+    
     <div class="footer">
-        
         Made By- Devansh Matha<br>
         Mail- Devansh0403@gmail.com
     </div>
-
-   
     <script src="popup.js"></script>
 </body>
-
 </html>

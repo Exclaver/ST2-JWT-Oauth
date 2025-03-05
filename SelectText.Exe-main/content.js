@@ -225,16 +225,15 @@ function initializeTextSelection() {
             rect.top < selectionBounds.bottom &&
             rect.bottom > selectionBounds.top) {
             
-          // Store each word with its position data
           selectedWords.push({
             text: overlay.getAttribute('data-text'),
-          line: parseInt(overlay.getAttribute('data-line') || '0'),
-          addSpaceBefore: overlay.hasAttribute('data-add-space'),
-          y: rect.top,
-          x: rect.left
+            line: parseInt(overlay.getAttribute('data-line') || '0'),
+            addSpaceBefore: overlay.hasAttribute('data-add-space'),
+            y: rect.top,
+            x: rect.left,
+            width:rect.width
           });
           
-          // Highlight the background and change text color
           overlay.style.backgroundColor = '#4287f5';
           const textSpan = overlay.querySelector('.overlay-text');
           if (textSpan) {
@@ -250,79 +249,157 @@ function initializeTextSelection() {
       });
   
       if (selectedWords.length > 0) {
-        // First, sort words by line and x position
-        selectedWords.sort((a, b) => {
-          if (a.line !== b.line) return a.line - b.line;
-          return a.x - b.x;
-        });
-        
-        // Build text with proper spacing
-        let textToCopy = '';
-        let currentLine = -1;
-        
-        selectedWords.forEach(word => {
-          // Add newline if this is a new line
-          if (word.line !== currentLine) {
-            if (currentLine !== -1) {
-              textToCopy += '\n';
-            }
-            currentLine = word.line;
-          } else if (word.addSpaceBefore) {
-            // Add space if needed and we're on the same line
-            textToCopy += ' ';
-          }
+        chrome.storage.local.get(['copyStyle'], function(result) {
+          const copyStyle = result.copyStyle || 'multiline';
           
-          // Add the word text
-          textToCopy += word.text;
-        });
-        
-        // Store video states before copying
-        const videos = document.querySelectorAll('video');
-        const videoStates = new Map();
-        
-        videos.forEach(video => {
-          videoStates.set(video, {
-            wasPaused: video.paused,
-            currentTime: video.currentTime
+          selectedWords.sort((a, b) => {
+            if (a.line !== b.line) return a.line - b.line;
+            return a.x - b.x;
           });
-          // Ensure video stays paused
-          if (!video.paused) {
-            video.pause();
+          
+          let textToCopy = '';
+          
+          switch(copyStyle) {
+            case 'singleline':
+              textToCopy = selectedWords
+                .map(word => word.text)
+                .join(' ');
+              break;
+              
+              case 'indent':
+                // Calculate minimum x position as a reference point
+                const baseX = Math.min(...selectedWords.map(w => w.x));
+                let currentLine = -1;
+                let charWidthEstimates = [];
+                
+                // First pass - calculate average character width
+                selectedWords.forEach(word => {
+                  if (word.text && word.text.length > 1 && word.width) {
+                    const charWidth = word.width / word.text.length;
+                    charWidthEstimates.push(charWidth);
+                  }
+                });
+                
+                // Calculate average character width from samples
+                const avgCharWidth = charWidthEstimates.length > 0 ? 
+                  charWidthEstimates.reduce((sum, width) => sum + width, 0) / charWidthEstimates.length : 
+                  8; // Default if no estimates
+                
+                // Space character width (typically wider than average char)
+                const spaceWidth = avgCharWidth * 1.2;
+                
+                // Process words with intelligent indentation
+                selectedWords.forEach(word => {
+                  if (word.line !== currentLine) {
+                    // Handle new line
+                    if (currentLine !== -1) textToCopy += '\n';
+                    
+                    // Calculate indent based on position and character width
+                    const indentPixels = word.x - baseX;
+                    const indentSpaces = Math.round(indentPixels / spaceWidth);
+                    
+                    // Apply indent (with a maximum to prevent excessive spaces)
+                    textToCopy += ' '.repeat(Math.min(indentSpaces, 100));
+                    currentLine = word.line;
+                    lastWordEndX = word.x + word.width;
+                  } else {
+                    // Calculate gap between words on same line
+                    const gap = word.x - lastWordEndX;
+                    
+                    // Convert gap to number of spaces based on character width
+                    const spaceCount = Math.round(gap / spaceWidth);
+                    
+                    // Add spaces if needed (and not already at start of line)
+                    if (spaceCount > 0) {
+                      textToCopy += ' '.repeat(spaceCount);
+                    }
+                    
+                    lastWordEndX = word.x + word.width;
+                  }
+                  
+                  // Add the word text
+                  textToCopy += word.text;
+                });
+                break;
+              
+                case 'multiline':
+                  default:
+                    let currentMultiLine = -1;
+                    let multilineCharWidthEstimates = []; // Renamed from charWidthEstimates
+                    
+                    // First pass - calculate average character width
+                    selectedWords.forEach(word => {
+                      if (word.text && word.text.length > 1 && word.width) {
+                        const charWidth = word.width / word.text.length;
+                        multilineCharWidthEstimates.push(charWidth);
+                      }
+                    });
+                    
+                    // Calculate average character width from samples
+                    const multilineAvgCharWidth = multilineCharWidthEstimates.length > 0 ? 
+                      multilineCharWidthEstimates.reduce((sum, width) => sum + width, 0) / multilineCharWidthEstimates.length : 
+                      8; // Default if no estimates
+                    
+                    // Process words with character-width spacing
+                    let multilineLastWordEndX = -1; // Renamed from lastWordEndX
+                    
+                    selectedWords.forEach(word => {
+                      if (word.line !== currentMultiLine) {
+                        // Handle new line
+                        if (currentMultiLine !== -1) textToCopy += '\n';
+                        currentMultiLine = word.line;
+                        multilineLastWordEndX = -1;
+                      } else if (multilineLastWordEndX !== -1) {
+                        // Calculate gap between current word and last word
+                        const gap = word.x - multilineLastWordEndX;
+                        
+                        // Convert gap to number of spaces (your algorithm)
+                        const spaceCount = Math.round(gap / multilineAvgCharWidth);
+                        
+                        // Only add spaces if there's a meaningful gap
+                        if (spaceCount > 0) {
+                          textToCopy += ' '.repeat(spaceCount);
+                        }
+                      }
+                      
+                      // Add the word text
+                      textToCopy += word.text;
+                      multilineLastWordEndX = word.x + word.width; // Track end position for next word
+                    });
+                    break;
           }
-        });
   
-        navigator.clipboard.writeText(textToCopy).then(() => {
-          // Show feedback
-          const feedback = document.createElement('div');
-          Object.assign(feedback.style, {
-            position: 'fixed',
-            left: '50%',
-            top: selectionBounds.bottom + 10 + 'px',
-            transform: 'translateX(-50%)',
-            background: 'black',
-            color: 'white',
-            padding: '8px 16px',
-            borderRadius: '50px',
-            zIndex: '1000000',
-            opacity: '0',
-            transition: 'all 0.7s',
-            boxShadow: `
-              -10px -10px 20px 0px #5B51D8,
-              0 -10px 20px 0px #833AB4,
-              10px -10px 20px 0px #E1306C,
-              10px 0 20px 0px #FD1D1D,
-              10px 10px 20px 0px #F77737,
-              0 10px 20px 0px #FCAF45,
-              -10px 10px 20px 0px #FFDC80
-            `,
-            fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-            fontSize: '14px',
-            fontWeight: '500',
-            textAlign: 'center'
-          });
-          feedback.textContent = 'Text copied!';
-          document.body.appendChild(feedback);
-          
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            const feedback = document.createElement('div');
+            Object.assign(feedback.style, {
+              position: 'fixed',
+              left: '50%',
+              top: selectionBounds.bottom + 10 + 'px',
+              transform: 'translateX(-50%)',
+              background: 'black',
+              color: 'white',
+              padding: '8px 16px',
+              borderRadius: '50px',
+              zIndex: '1000000',
+              opacity: '0',
+              transition: 'all 0.7s',
+              boxShadow: `
+                -10px -10px 20px 0px #5B51D8,
+                0 -10px 20px 0px #833AB4,
+                10px -10px 20px 0px #E1306C,
+                10px 0 20px 0px #FD1D1D,
+                10px 10px 20px 0px #F77737,
+                0 10px 20px 0px #FCAF45,
+                -10px 10px 20px 0px #FFDC80
+              `,
+              fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+              fontSize: '14px',
+              fontWeight: '500',
+              textAlign: 'center'
+            });
+            feedback.textContent = 'Text copied!';
+            document.body.appendChild(feedback);
+            
             const allWordOverlays = document.querySelectorAll('.word-overlay');
             allWordOverlays.forEach(overlay => {
               overlay.style.backgroundColor = 'rgb(0, 0, 0)';
@@ -331,19 +408,18 @@ function initializeTextSelection() {
                 textSpan.style.color = 'white';
               }
             });
-          
-          
-          requestAnimationFrame(() => {
-            feedback.style.opacity = '1';
-            setTimeout(() => {
-              feedback.style.opacity = '0';
-              setTimeout(() => feedback.remove(), 200);
-            }, 1500);
+            
+            requestAnimationFrame(() => {
+              feedback.style.opacity = '1';
+              setTimeout(() => {
+                feedback.style.opacity = '0';
+                setTimeout(() => feedback.remove(), 200);
+              }, 1500);
+            });
           });
         });
       }
   
-      // Remove selection overlay
       selectionOverlay.remove();
       selectionOverlay = null;
     }
