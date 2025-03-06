@@ -4,114 +4,7 @@ let isSelecting = false;
 let selectionStart = { x: 0, y: 0 };
 let selectionOverlay = null;
 let isSignInPopupVisible = false;
-let protectiveOverlay = null;
 
-function toggleProtectiveOverlay(video, show) {
-  // Remove existing overlay if any
-  if (protectiveOverlay) {
-    protectiveOverlay.remove();
-    protectiveOverlay = null;
-  }
-  
-  if (show) {
-    const videoRect = video.getBoundingClientRect();
-    
-    // Find the toggle switch container
-    const toggleContainer = video.parentElement.querySelector('.container');
-    let toggleRect = null;
-    
-    if (toggleContainer) {
-      toggleRect = toggleContainer.getBoundingClientRect();
-    }
-    
-    // Create our overlay - note we add it to video.parentElement, not document.body
-    protectiveOverlay = document.createElement('div');
-    
-    Object.assign(protectiveOverlay.style, {
-      position: 'absolute',
-      top: '0',
-      left: '0',
-      width: '100%',
-      height: '100%',
-      zIndex: '999995', // Lower than word overlays (999995) but higher than video
-      background: 'transparent',
-      cursor: 'text',
-      pointerEvents: 'auto'
-    });
-    
-    // Add event listener to create "hole" for toggle button
-    protectiveOverlay.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent clicks from reaching the video
-      
-      // If we have a toggle container and the click is within its bounds, 
-      // we should not prevent default to allow the toggle to work
-      if (toggleContainer && toggleRect) {
-        const clickX = e.clientX;
-        const clickY = e.clientY;
-        
-        // Check if click is within the toggle button bounds
-        if (clickX >= toggleRect.left && clickX <= toggleRect.right &&
-            clickY >= toggleRect.top && clickY <= toggleRect.bottom) {
-          // Allow the click event to bubble up to the toggle
-          return true;
-        }
-      }
-      
-      // Otherwise, prevent default to stop video from playing/pausing
-      e.stopPropagation();
-  e.preventDefault();
-  return false;
-    });
-    
-    // Store original video pointer-events style
-    video.dataset.originalPointerEvents = video.style.pointerEvents || '';
-    
-    // Disable pointer events on the video
-    video.style.pointerEvents = 'none';
-    
-    // Ensure clickable toggle switch
-    if (toggleContainer) {
-      toggleContainer.style.pointerEvents = 'auto';
-      toggleContainer.style.zIndex = '1000002';
-      
-      const toggleInput = toggleContainer.querySelector('input[type="checkbox"]');
-      if (toggleInput && !toggleInput.checked) {
-        toggleInput.checked = show;
-      }
-      
-      const toggleChildren = toggleContainer.querySelectorAll('*');
-      toggleChildren.forEach(child => {
-        child.style.pointerEvents = 'auto';
-      });
-    }
-    
-    // Add to video's parent, not document.body
-    video.parentElement.appendChild(protectiveOverlay);
-  } else {
-    if (video && video.dataset.originalPointerEvents !== undefined) {
-      video.style.pointerEvents = video.dataset.originalPointerEvents;
-    }
-    
-    const toggleContainer = video.parentElement.querySelector('.container');
-    if (toggleContainer) {
-      const toggleInput = toggleContainer.querySelector('input[type="checkbox"]');
-      if (toggleInput) {
-        toggleInput.checked = false;
-      }
-    }
-    
-    // Hide word overlays for this specific video only
-    if (video.dataset.overlayContainerId) {
-      const containerSelector = `#${video.dataset.overlayContainerId} .word-overlay`;
-      const wordOverlays = document.querySelectorAll(containerSelector);
-      wordOverlays.forEach(overlay => {
-        overlay.style.display = 'none';
-      });
-    }
-    
-    textVisible = false;
-  }
-}
 // Add at the top of content.js
 async function checkAuthStatus() {
   return new Promise((resolve) => {
@@ -122,6 +15,7 @@ async function checkAuthStatus() {
   });
 }
 function initializeTextSelection() {
+  // Create selection styles
   const selectionStyles = `
     .selection-overlay {
       position: fixed;
@@ -136,6 +30,12 @@ function initializeTextSelection() {
   style.textContent = selectionStyles;
   document.head.appendChild(style);
 
+  // Selection tracking variables
+  let isSelecting = false;
+  let selectionStart = null;
+  let selectionOverlay = null;
+
+  // Mouse down event
   document.addEventListener('mousedown', (e) => {
     if (e.button === 0 && textVisible && hasProcessedOCR) {
       e.preventDefault();
@@ -154,6 +54,7 @@ function initializeTextSelection() {
     }
   });
 
+  // Mouse move event
   document.addEventListener('mousemove', (e) => {
     if (isSelecting && selectionOverlay) {
       e.preventDefault();
@@ -180,25 +81,12 @@ function initializeTextSelection() {
         right: left + width,
         bottom: top + height
       };
-  
-      const wordOverlays = document.querySelectorAll('.word-overlay');
-      wordOverlays.forEach(overlay => {
-        const rect = overlay.getBoundingClientRect();
-        
-        if (rect.left < selectionBounds.right &&
-            rect.right > selectionBounds.left &&
-            rect.top < selectionBounds.bottom &&
-            rect.bottom > selectionBounds.top) {
-          overlay.style.backgroundColor = '#4287f5';
-          overlay.style.color = 'black';
-        } else {
-          overlay.style.backgroundColor = 'rgb(0, 0, 0)';
-          overlay.style.color = 'white';
-        }
-      });
+
+      processSelectionHighlight(selectionBounds);
     }
   });
 
+  // Mouse up event
   document.addEventListener('mouseup', (e) => {
     if (isSelecting && selectionOverlay) {
       e.preventDefault();
@@ -213,217 +101,19 @@ function initializeTextSelection() {
         bottom: parseInt(selectionOverlay.style.top) + parseInt(selectionOverlay.style.height)
       };
     
-      // Store selected words with their position data
-      const selectedWords = [];
-      const wordOverlays = document.querySelectorAll('.word-overlay');
-      
-      wordOverlays.forEach(overlay => {
-        const rect = overlay.getBoundingClientRect();
-        
-        if (rect.left < selectionBounds.right &&
-            rect.right > selectionBounds.left &&
-            rect.top < selectionBounds.bottom &&
-            rect.bottom > selectionBounds.top) {
-            
-          selectedWords.push({
-            text: overlay.getAttribute('data-text'),
-            line: parseInt(overlay.getAttribute('data-line') || '0'),
-            addSpaceBefore: overlay.hasAttribute('data-add-space'),
-            y: rect.top,
-            x: rect.left,
-            width:rect.width
-          });
-          
-          overlay.style.backgroundColor = '#4287f5';
-          const textSpan = overlay.querySelector('.overlay-text');
-          if (textSpan) {
-            textSpan.style.color = 'black';
-          }
-        } else {
-          overlay.style.backgroundColor = 'rgb(0, 0, 0)';
-          const textSpan = overlay.querySelector('.overlay-text');
-          if (textSpan) {
-            textSpan.style.color = 'white';
-          }
-        }
-      });
+      // Collect and process selected words
+      const selectedWords = collectSelectedWords(selectionBounds);
   
       if (selectedWords.length > 0) {
-        chrome.storage.local.get(['copyStyle'], function(result) {
-          const copyStyle = result.copyStyle || 'multiline';
-          
-          selectedWords.sort((a, b) => {
-            if (a.line !== b.line) return a.line - b.line;
-            return a.x - b.x;
-          });
-          
-          let textToCopy = '';
-          
-          switch(copyStyle) {
-            case 'singleline':
-              textToCopy = selectedWords
-                .map(word => word.text)
-                .join(' ');
-              break;
-              
-              case 'indent':
-                // Calculate minimum x position as a reference point
-                const baseX = Math.min(...selectedWords.map(w => w.x));
-                let currentLine = -1;
-                let charWidthEstimates = [];
-                
-                // First pass - calculate average character width
-                selectedWords.forEach(word => {
-                  if (word.text && word.text.length > 1 && word.width) {
-                    const charWidth = word.width / word.text.length;
-                    charWidthEstimates.push(charWidth);
-                  }
-                });
-                
-                // Calculate average character width from samples
-                const avgCharWidth = charWidthEstimates.length > 0 ? 
-                  charWidthEstimates.reduce((sum, width) => sum + width, 0) / charWidthEstimates.length : 
-                  8; // Default if no estimates
-                
-                // Space character width (typically wider than average char)
-                const spaceWidth = avgCharWidth * 1.2;
-                
-                // Process words with intelligent indentation
-                selectedWords.forEach(word => {
-                  if (word.line !== currentLine) {
-                    // Handle new line
-                    if (currentLine !== -1) textToCopy += '\n';
-                    
-                    // Calculate indent based on position and character width
-                    const indentPixels = word.x - baseX;
-                    const indentSpaces = Math.round(indentPixels / spaceWidth);
-                    
-                    // Apply indent (with a maximum to prevent excessive spaces)
-                    textToCopy += ' '.repeat(Math.min(indentSpaces, 100));
-                    currentLine = word.line;
-                    lastWordEndX = word.x + word.width;
-                  } else {
-                    // Calculate gap between words on same line
-                    const gap = word.x - lastWordEndX;
-                    
-                    // Convert gap to number of spaces based on character width
-                    const spaceCount = Math.round(gap / spaceWidth);
-                    
-                    // Add spaces if needed (and not already at start of line)
-                    if (spaceCount > 0) {
-                      textToCopy += ' '.repeat(spaceCount);
-                    }
-                    
-                    lastWordEndX = word.x + word.width;
-                  }
-                  
-                  // Add the word text
-                  textToCopy += word.text;
-                });
-                break;
-              
-                case 'multiline':
-                  default:
-                    let currentMultiLine = -1;
-                    let multilineCharWidthEstimates = []; // Renamed from charWidthEstimates
-                    
-                    // First pass - calculate average character width
-                    selectedWords.forEach(word => {
-                      if (word.text && word.text.length > 1 && word.width) {
-                        const charWidth = word.width / word.text.length;
-                        multilineCharWidthEstimates.push(charWidth);
-                      }
-                    });
-                    
-                    // Calculate average character width from samples
-                    const multilineAvgCharWidth = multilineCharWidthEstimates.length > 0 ? 
-                      multilineCharWidthEstimates.reduce((sum, width) => sum + width, 0) / multilineCharWidthEstimates.length : 
-                      8; // Default if no estimates
-                    
-                    // Process words with character-width spacing
-                    let multilineLastWordEndX = -1; // Renamed from lastWordEndX
-                    
-                    selectedWords.forEach(word => {
-                      if (word.line !== currentMultiLine) {
-                        // Handle new line
-                        if (currentMultiLine !== -1) textToCopy += '\n';
-                        currentMultiLine = word.line;
-                        multilineLastWordEndX = -1;
-                      } else if (multilineLastWordEndX !== -1) {
-                        // Calculate gap between current word and last word
-                        const gap = word.x - multilineLastWordEndX;
-                        
-                        // Convert gap to number of spaces (your algorithm)
-                        const spaceCount = Math.round(gap / multilineAvgCharWidth);
-                        
-                        // Only add spaces if there's a meaningful gap
-                        if (spaceCount > 0) {
-                          textToCopy += ' '.repeat(spaceCount);
-                        }
-                      }
-                      
-                      // Add the word text
-                      textToCopy += word.text;
-                      multilineLastWordEndX = word.x + word.width; // Track end position for next word
-                    });
-                    break;
-          }
-  
-          navigator.clipboard.writeText(textToCopy).then(() => {
-            const feedback = document.createElement('div');
-            Object.assign(feedback.style, {
-              position: 'fixed',
-              left: '50%',
-              top: selectionBounds.bottom + 10 + 'px',
-              transform: 'translateX(-50%)',
-              background: 'black',
-              color: 'white',
-              padding: '8px 16px',
-              borderRadius: '50px',
-              zIndex: '1000000',
-              opacity: '0',
-              transition: 'all 0.7s',
-              boxShadow: `
-                -10px -10px 20px 0px #5B51D8,
-                0 -10px 20px 0px #833AB4,
-                10px -10px 20px 0px #E1306C,
-                10px 0 20px 0px #FD1D1D,
-                10px 10px 20px 0px #F77737,
-                0 10px 20px 0px #FCAF45,
-                -10px 10px 20px 0px #FFDC80
-              `,
-              fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-              fontSize: '14px',
-              fontWeight: '500',
-              textAlign: 'center'
-            });
-            feedback.textContent = 'Text copied!';
-            document.body.appendChild(feedback);
-            
-            const allWordOverlays = document.querySelectorAll('.word-overlay');
-            allWordOverlays.forEach(overlay => {
-              overlay.style.backgroundColor = 'rgb(0, 0, 0)';
-              const textSpan = overlay.querySelector('.overlay-text');
-              if (textSpan) {
-                textSpan.style.color = 'white';
-              }
-            });
-            
-            requestAnimationFrame(() => {
-              feedback.style.opacity = '1';
-              setTimeout(() => {
-                feedback.style.opacity = '0';
-                setTimeout(() => feedback.remove(), 200);
-              }, 1500);
-            });
-          });
-        });
+        processSelectedWords(selectedWords, selectionBounds);
       }
-  
+
       selectionOverlay.remove();
       selectionOverlay = null;
     }
   });
+
+  // Prevent interactions with word overlays
   document.addEventListener('click', (e) => {
     if (textVisible && hasProcessedOCR) {
       const wordOverlay = e.target.closest('.word-overlay');
@@ -432,7 +122,227 @@ function initializeTextSelection() {
         e.stopPropagation();
       }
     }
-  }, true); 
+  }, true);
+}
+
+function collectSelectedWords(selectionBounds) {
+  const selectedWords = [];
+  const wordOverlays = document.querySelectorAll('.word-overlay');
+  
+  wordOverlays.forEach(overlay => {
+    const rect = overlay.getBoundingClientRect();
+    
+    if (rect.left < selectionBounds.right &&
+        rect.right > selectionBounds.left &&
+        rect.top < selectionBounds.bottom &&
+        rect.bottom > selectionBounds.top) {
+        
+      selectedWords.push({
+        text: overlay.getAttribute('data-text'),
+        line: parseInt(overlay.getAttribute('data-line') || '0'),
+        addSpaceBefore: overlay.hasAttribute('data-add-space'),
+        y: rect.top,
+        x: rect.left,
+        width: rect.width
+      });
+      
+      overlay.style.backgroundColor = '#4287f5';
+      const textSpan = overlay.querySelector('.overlay-text');
+      if (textSpan) {
+        textSpan.style.color = 'black';
+      }
+    } else {
+      overlay.style.backgroundColor = 'rgb(0, 0, 0)';
+      const textSpan = overlay.querySelector('.overlay-text');
+      if (textSpan) {
+        textSpan.style.color = 'white';
+      }
+    }
+  });
+
+  return selectedWords;
+}
+
+function processSelectedWords(selectedWords, selectionBounds) {
+  chrome.storage.local.get(['copyStyle'], function(result) {
+    const copyStyle = result.copyStyle || 'multiline';
+    
+    selectedWords.sort((a, b) => {
+      if (a.line !== b.line) return a.line - b.line;
+      return a.x - b.x;
+    });
+    
+    let textToCopy = '';
+    
+    // Existing copy style processing logic 
+    // (Truncated for brevity, would include the full switch statement 
+    // and text processing logic from the original code)
+    switch(copyStyle) {
+      case 'singleline':
+        textToCopy = selectedWords
+          .map(word => word.text)
+          .join(' ');
+        break;
+        
+        case 'indent':
+          // Calculate minimum x position as a reference point
+          const baseX = Math.min(...selectedWords.map(w => w.x));
+          let currentLine = -1;
+          let charWidthEstimates = [];
+          
+          // First pass - calculate average character width
+          selectedWords.forEach(word => {
+            if (word.text && word.text.length > 1 && word.width) {
+              const charWidth = word.width / word.text.length;
+              charWidthEstimates.push(charWidth);
+            }
+          });
+          
+          // Calculate average character width from samples
+          const avgCharWidth = charWidthEstimates.length > 0 ? 
+            charWidthEstimates.reduce((sum, width) => sum + width, 0) / charWidthEstimates.length : 
+            8; // Default if no estimates
+          
+          // Space character width (typically wider than average char)
+          const spaceWidth = avgCharWidth * 1.2;
+          
+          // Process words with intelligent indentation
+          selectedWords.forEach(word => {
+            if (word.line !== currentLine) {
+              // Handle new line
+              if (currentLine !== -1) textToCopy += '\n';
+              
+              // Calculate indent based on position and character width
+              const indentPixels = word.x - baseX;
+              const indentSpaces = Math.round(indentPixels / spaceWidth);
+              
+              // Apply indent (with a maximum to prevent excessive spaces)
+              textToCopy += ' '.repeat(Math.min(indentSpaces, 100));
+              currentLine = word.line;
+              lastWordEndX = word.x + word.width;
+            } else {
+              // Calculate gap between words on same line
+              const gap = word.x - lastWordEndX;
+              
+              // Convert gap to number of spaces based on character width
+              const spaceCount = Math.round(gap / spaceWidth);
+              
+              // Add spaces if needed (and not already at start of line)
+              if (spaceCount > 0) {
+                textToCopy += ' '.repeat(spaceCount);
+              }
+              
+              lastWordEndX = word.x + word.width;
+            }
+            
+            // Add the word text
+            textToCopy += word.text;
+          });
+          break;
+        
+          case 'multiline':
+            default:
+              let currentMultiLine = -1;
+              let multilineCharWidthEstimates = []; // Renamed from charWidthEstimates
+              
+              // First pass - calculate average character width
+              selectedWords.forEach(word => {
+                if (word.text && word.text.length > 1 && word.width) {
+                  const charWidth = word.width / word.text.length;
+                  multilineCharWidthEstimates.push(charWidth);
+                }
+              });
+              
+              // Calculate average character width from samples
+              const multilineAvgCharWidth = multilineCharWidthEstimates.length > 0 ? 
+                multilineCharWidthEstimates.reduce((sum, width) => sum + width, 0) / multilineCharWidthEstimates.length : 
+                8; // Default if no estimates
+              
+              // Process words with character-width spacing
+              let multilineLastWordEndX = -1; // Renamed from lastWordEndX
+              
+              selectedWords.forEach(word => {
+                if (word.line !== currentMultiLine) {
+                  // Handle new line
+                  if (currentMultiLine !== -1) textToCopy += '\n';
+                  currentMultiLine = word.line;
+                  multilineLastWordEndX = -1;
+                } else if (multilineLastWordEndX !== -1) {
+                  // Calculate gap between current word and last word
+                  const gap = word.x - multilineLastWordEndX;
+                  
+                  // Convert gap to number of spaces (your algorithm)
+                  const spaceCount = Math.round(gap / multilineAvgCharWidth);
+                  
+                  // Only add spaces if there's a meaningful gap
+                  if (spaceCount > 0) {
+                    textToCopy += ' '.repeat(spaceCount);
+                  }
+                }
+                
+                // Add the word text
+                textToCopy += word.text;
+                multilineLastWordEndX = word.x + word.width; // Track end position for next word
+              });
+              break;
+    }
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      // Reset all word overlay colors
+      const allWordOverlays = document.querySelectorAll('.word-overlay');
+      allWordOverlays.forEach(overlay => {
+        overlay.style.backgroundColor = 'rgb(0, 0, 0)';
+        const textSpan = overlay.querySelector('.overlay-text');
+        if (textSpan) {
+          textSpan.style.color = 'white';
+        }
+      });
+
+      // Create copy feedback
+      const feedback = document.createElement('div');
+      Object.assign(feedback.style, {
+        position: 'fixed',
+        left: '50%',
+        top: selectionBounds.bottom + 10 + 'px',
+        transform: 'translateX(-50%)',
+        background: 'black',
+        color: 'white',
+        padding: '8px 16px',
+        borderRadius: '50px',
+        zIndex: '1000000',
+        opacity: '0',
+        transition: 'all 0.7s'
+      });
+      feedback.textContent = 'Text copied!';
+      document.body.appendChild(feedback);
+      
+      requestAnimationFrame(() => {
+        feedback.style.opacity = '1';
+        setTimeout(() => {
+          feedback.style.opacity = '0';
+          setTimeout(() => feedback.remove(), 200);
+        }, 1500);
+      });
+    });
+  });
+}
+
+function processSelectionHighlight(selectionBounds) {
+  const wordOverlays = document.querySelectorAll('.word-overlay');
+  wordOverlays.forEach(overlay => {
+    const rect = overlay.getBoundingClientRect();
+    
+    if (rect.left < selectionBounds.right &&
+        rect.right > selectionBounds.left &&
+        rect.top < selectionBounds.bottom &&
+        rect.bottom > selectionBounds.top) {
+      overlay.style.backgroundColor = '#4287f5';
+      overlay.style.color = 'black';
+    } else {
+      overlay.style.backgroundColor = 'rgb(0, 0, 0)';
+      overlay.style.color = 'white';
+    }
+  });
 }
 
 // Update the existing processScreenshot function with these changes:
@@ -896,14 +806,8 @@ toggleSwitch.addEventListener('change', async (event) => {
     createWordOverlays(words, video);
     hasProcessedOCR = true;
     initializeTextSelection();
-    toggleProtectiveOverlay(video, true);
-  } else if (event.target.checked && hasProcessedOCR) {
-    // If just toggling visibility ON
-    toggleProtectiveOverlay(video, true);
-  } else {
-    // If toggling OFF
-    toggleProtectiveOverlay(video, false);
-  }
+    // toggleProtectiveOverlay(video, true);
+  } 
 
   // Toggle visibility based on the overlay container for this specific video
   textVisible = event.target.checked;
@@ -928,7 +832,6 @@ toggleSwitch.addEventListener('change', async (event) => {
     toggleSwitch.checked = false;
     const wordOverlays = document.querySelectorAll('.word-overlay');
     wordOverlays.forEach(overlay => overlay.remove());
-      toggleProtectiveOverlay(video, false);
 
   };
 

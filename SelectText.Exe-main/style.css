@@ -262,3 +262,23 @@
   padding: 5px;
   line-height: 1;
 }
+.selection-overlay {
+  position: absolute;
+  background: rgba(66, 135, 245, 0.2);
+  border: 1px solid #4287f5;
+  pointer-events: auto;
+  z-index: 999998;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.word-overlays-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999990;
+  pointer-events: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
