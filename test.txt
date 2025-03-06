@@ -61,3 +61,82 @@ return (
 <button onClick={incrementState}>Increment State</button>
 </div>
 );
+return (
+<div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+<h2>useState vs useRef</h2>
+<p>State Count: {count}</p>
+<button onClick={incrementState}>Increment State</button>
+</div>
+);
+return (
+<div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+<h2>useState vs useRef</h2>
+<p>State Count: {count}</p>
+<button onClick={incrementState}>Increment State</button>
+</div>
+);
+return (
+  <div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+   <h2>useState vs useRef</h2>
+   <p>State Count: {count}</p>
+   <button onClick={incrementState}>Increment State</button>
+  </div>
+);
+return ( < div style = { { display : " flex "return ( < div style = { { display : " flex " , alignItems : ' center ' , flexDirection : ' column ' } } > < h2 > useState vs use Ref < / h2 > < p > State Count : { count } < / p > < button onClick = { increment State } > Increment State < / button > < / div > ) ; , alignItems : ' center ' , flexDirection : ' column ' } } > < h2 > useState vs use Ref < / h2 > < p > State Count : { count } < / p > < button onClick = { increment State } > Increment State < / button > < / div > ) ;
+
+return (
+  <div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+  <h2>useState vs useRef</h2>
+   <p>State Count: {count}</p>
+   <button onClick={incrementState}>Increment State</button>
+  </div>
+
+
+return (
+  <div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+   <h2>useState vs useRef</h2>
+   <p>State Count: {count}</p>
+   <button onClick={incrementState}>Increment State</button>
+  </div>
+return (
+<div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+<h2>useState vs useRef</h2>
+<p>State Count: {count}</p>
+<button onClick={incrementState}>Increment State</button>
+</div>
+return (
+<div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+<h2>useState vs useRef</h2>
+<p>State Count: {count}</p>
+<button onClick={incrementState}>Increment State</button>
+</div>
+return (
+<div style={{display:"flex",alignItems:'center',flexDirection:'column
+<h2>useState vs useRef</h2>
+<p>State Count: {count}</p>|I
+<button onClick={incrementState}>Increment State</button>
+</div>
+);
+};
+return (
+  <div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+   <h2>useState vs useRef</h2>
+   <p>StateCount: {count}</p>|I
+   <button onClick={incrementState}>Increment State</button>
+  </div>
+);
+return (
+  <div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+   <h2>useState vs useRef</h2>
+   <p>State Count: {count}</p>
+   <button onClick={incrementState}>Increment State</button>
+  </div>
+);
+ return (
+  <div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+    <h2>useState vs useRef</h2>
+    <p>State Count: {count}</p>
+    <button onClick={incrementState}>Increment State</button>
+  </div>
+ );
+;
