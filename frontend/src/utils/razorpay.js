@@ -40,19 +40,26 @@ export const loadRazorpay = () => {
 };
 // Open Razorpay checkout directly
 export const processPayment = async (planId, onSuccess, onError) => {
+  console.log('[DEBUG] processPayment started with planId:', planId);
   try {
     // Load Razorpay script
+    console.log('[DEBUG] Attempting to load Razorpay script');
     const scriptLoaded = await loadRazorpay();
+    console.log('[DEBUG] loadRazorpay result:', scriptLoaded);
     
     if (!scriptLoaded) {
+      console.error('[DEBUG] Razorpay script failed to load');
       alert('Razorpay SDK failed to load. Please check your internet connection.');
       return;
     }
     
     // Create order on server
+    console.log('[DEBUG] Creating order on server for planId:', planId);
     const orderData = await paymentAPI.createOrder(planId);
+    console.log('[DEBUG] Order created successfully:', orderData);
     
     // Configure Razorpay options
+    console.log('[DEBUG] Configuring Razorpay options');
     const options = {
       key: orderData.key_id,
       amount: orderData.amount,
@@ -62,18 +69,18 @@ export const processPayment = async (planId, onSuccess, onError) => {
       order_id: orderData.order_id,
       handler: async function (response) {
         // Verify payment on serve
-        console.log('Razorpay payment response:', response);
+        console.log('[DEBUG] Razorpay payment response:', response);
         try {
-          console.log('Verifying payment...');
+          console.log('[DEBUG] Verifying payment...');
           const result = await paymentAPI.verifyPayment({
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_order_id: response.razorpay_order_id,
             razorpay_signature: response.razorpay_signature
           });
-          console.log('Payment verification successful:', result);
+          console.log('[DEBUG] Payment verification successful:', result);
           onSuccess(result);
         } catch (err) {
-          console.error('Payment verification failed:', err);
+          console.error('[DEBUG] Payment verification failed:', err);
           onError(err.response?.data?.error || 'Payment verification failed');
         }
       },
@@ -86,16 +93,28 @@ export const processPayment = async (planId, onSuccess, onError) => {
       },
       modal: {
         ondismiss: function() {
-          console.log('Payment cancelled by user');
+          console.log('[DEBUG] Payment modal dismissed by user');
         }
       }
     };
+    console.log('[DEBUG] Razorpay options configured:', JSON.stringify(options, null, 2));
     
     // Open Razorpay checkout
+    console.log('[DEBUG] Creating Razorpay instance');
     const razorpay = new window.Razorpay(options);
+    console.log('[DEBUG] Razorpay instance created:', razorpay);
+    console.log('[DEBUG] Attempting to open Razorpay checkout modal');
     razorpay.open();
+    console.log('[DEBUG] Razorpay.open() called');
     
   } catch (err) {
+    console.error('[DEBUG] Error in processPayment:', err);
+    if (err.response) {
+      console.error('[DEBUG] Error response data:', err.response.data);
+      console.error('[DEBUG] Error response status:', err.response.status);
+    } else {
+      console.error('[DEBUG] Error details:', err.message || 'No error message');
+    }
     onError(err.response?.data?.error || 'Failed to initiate payment');
   }
 };
