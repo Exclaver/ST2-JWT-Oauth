@@ -1,4 +1,4 @@
-.container {
+.toggle-container {
   display: block;
   position: relative;
   cursor: pointer;
@@ -9,7 +9,7 @@
   margin-top: 25px;
 }
 
-.container input {
+.toggle-container input {
   position: absolute;
   opacity: 0;
   cursor: pointer;
@@ -37,7 +37,7 @@
     pointer-events: auto;
 }
 
-.checkmark {
+.toggle-checkmark {
   position: absolute;
   top: 0;
   left: 0;
@@ -52,7 +52,7 @@
   justify-content: flex-start;
 }
 
-.checkmark:before {
+.toggle-checkmark:before {
   content: "";
   position: absolute;
   height: 1em;
@@ -63,12 +63,12 @@
   left: 0.15em;
 }
 
-.container input:checked ~ .checkmark:before {
+.toggle-container input:checked ~ .toggle-checkmark:before {
   left: calc(100% - 1.15em);
   background-color: white;
 }
 
-.container input:checked ~ .checkmark {
+.toggle-container input:checked ~ .toggle-checkmark {
   background-color: #222222;
   border: 1px solid #a64dff;
   box-shadow: 
@@ -78,17 +78,17 @@
   transition: all 0.4s ease;
 }
 
-.checkmark:after {
+.toggle-checkmark:after {
   content: "";
   position: absolute;
   display: none;
 }
 
-.container input:checked ~ .checkmark:after {
+.toggle-container input:checked ~ .toggle-checkmark:after {
   display: block;
 }
 
-.container .checkmark:after {
+.toggle-container .toggle-checkmark:after {
   left: 0.45em;
   top: 0.25em;
   width: 0.25em;

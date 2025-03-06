@@ -738,7 +738,7 @@ function injectCSS() {
 function createToggleSwitch(video) {
   // Create container
   const container = document.createElement('label');
-  container.className = 'container';
+  container.className = 'toggle-container';
   Object.assign(container.style, {
     position: 'absolute',
     top: '35px',
@@ -822,7 +822,7 @@ toggleSwitch.addEventListener('change', async (event) => {
 
   // Create checkmark element
   const checkmark = document.createElement('div');
-  checkmark.className = 'checkmark';
+  checkmark.className = 'toggle-checkmark';
   checkmark.style.pointerEvents = 'none';
 
   // Reset OCR state and cleanup
