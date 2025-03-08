@@ -191,8 +191,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
 ]
 # Add these settings
-RAZORPAY_KEY_ID = 'rzp_test_z93HSCbP4S48OA'
-RAZORPAY_KEY_SECRET = 'KXG2NU1iViXryH5wRjiamdm3'
+RAZORPAY_KEY_ID = 'rzp_test_umO42Hk6V5ioku'
+RAZORPAY_KEY_SECRET = 'PUcU7YcDTPpUKvsPVnmnwNry'
 
 # Add this with your other Razorpay settings
 RAZORPAY_WEBHOOK_SECRET = '123456'  # Get this from Razorpay Dashboard

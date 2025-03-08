@@ -16,11 +16,25 @@ const Navbar = () => {
   // Add scroll effect for navbar
   useEffect(() => {
     const navbar = document.querySelector('.navbar');
+    let lastScrollY = 0;
+    let ticking = false;
+  
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-      } else {
-        navbar.classList.remove('scrolled');
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          // Use a buffer zone to prevent flickering
+          if (window.scrollY > 50) {
+            if (!navbar.classList.contains('scrolled')) {
+              navbar.classList.add('scrolled');
+            }
+          } else if (window.scrollY < 40) { // Add a buffer zone of 10px
+            if (navbar.classList.contains('scrolled')) {
+              navbar.classList.remove('scrolled');
+            }
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
     

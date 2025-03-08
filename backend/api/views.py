@@ -145,13 +145,39 @@ def verify_payment(request):
             try:
                 # Get payment details for response
                 payment = Payment.objects.get(razorpay_order_id=order_id)
+                
+                # Update payment status and record payment ID
+                payment.status = 'completed'
+                payment.razorpay_payment_id = payment_id
+                
+                # Get payment method from Razorpay - you need to add this
+                import razorpay
+                client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+                payment_details = client.payment.fetch(payment_id)
+                payment.payment_method = payment_details.get('method', 'unknown')
+                
+                # Save the updated payment
+                payment.save()
+                
+                # Update user's profile if not already done by webhook
                 profile = payment.user.profile
+                if payment.plan and payment.status == 'completed':
+                    # Only update if not already updated by webhook
+                    if profile.plan != payment.plan or profile.credits_remaining < payment.plan.requests_per_month:
+                        profile.plan = payment.plan
+                        profile.credits_remaining += payment.plan.requests_per_month
+                        if profile.plan_expiry and profile.plan_expiry > timezone.now():
+                            profile.plan_expiry += datetime.timedelta(days=30)
+                        else:
+                            profile.plan_expiry = timezone.now() + datetime.timedelta(days=30)
+                        profile.save()
                 
                 return Response({
                     'success': True,
                     'message': 'Payment successful',
                     'credits': profile.credits_remaining,
                     'plan': payment.plan.get_name_display(),
+                    'payment_method': payment.payment_method
                 })
             except Payment.DoesNotExist:
                 return Response({'success': True, 'message': 'Payment successful but details not found'})
@@ -359,9 +385,9 @@ def account(request):
             'status': payment.status,
             'date': payment.created_at.isoformat(),
             'razorpay_payment_id': payment.razorpay_payment_id,
-            'payment_method': payment.payment_method or 'Unknown',
+            'payment_method': payment.payment_method ,
         } for payment in payments]
-        
+        print(payment_history)
         return Response({
             'id': user.id,
             'username': user.username,

@@ -4,7 +4,10 @@ let isSelecting = false;
 let selectionStart = { x: 0, y: 0 };
 let selectionOverlay = null;
 let isSignInPopupVisible = false;
-
+let currentDisplayStyle = 'opaque';
+const SELECTED_BACKGROUND = '#4287f5';
+const OPAQUE_BACKGROUND = 'rgb(0, 0, 0)';
+const TRANSPARENT_BACKGROUND = 'transparent';
 // Add at the top of content.js
 async function checkAuthStatus() {
   return new Promise((resolve) => {
@@ -131,6 +134,8 @@ function collectSelectedWords(selectionBounds) {
   
   wordOverlays.forEach(overlay => {
     const rect = overlay.getBoundingClientRect();
+    const textSpan = overlay.querySelector('.overlay-text');
+    const displayStyle = overlay.getAttribute('data-display-style') || 'opaque';
     
     if (rect.left < selectionBounds.right &&
         rect.right > selectionBounds.left &&
@@ -150,13 +155,16 @@ function collectSelectedWords(selectionBounds) {
       const textSpan = overlay.querySelector('.overlay-text');
       if (textSpan) {
         textSpan.style.color = 'black';
+        textSpan.style.display = 'block'; // Always show text when selected
+
       }
     } else {
-      overlay.style.backgroundColor = 'rgb(0, 0, 0)';
-      const textSpan = overlay.querySelector('.overlay-text');
-      if (textSpan) {
-        textSpan.style.color = 'white';
-      }
+      overlay.style.backgroundColor = displayStyle === 'seethrough' ? 
+        TRANSPARENT_BACKGROUND : OPAQUE_BACKGROUND;
+        if (textSpan) {
+          textSpan.style.color = 'white';
+          textSpan.style.display = displayStyle === 'seethrough' ? 'none' : 'block';
+        }
     }
   });
 
@@ -174,9 +182,7 @@ function processSelectedWords(selectedWords, selectionBounds) {
     
     let textToCopy = '';
     
-    // Existing copy style processing logic 
-    // (Truncated for brevity, would include the full switch statement 
-    // and text processing logic from the original code)
+  
     switch(copyStyle) {
       case 'singleline':
         textToCopy = selectedWords
@@ -291,10 +297,15 @@ function processSelectedWords(selectedWords, selectionBounds) {
       // Reset all word overlay colors
       const allWordOverlays = document.querySelectorAll('.word-overlay');
       allWordOverlays.forEach(overlay => {
-        overlay.style.backgroundColor = 'rgb(0, 0, 0)';
+        const displayStyle = overlay.getAttribute('data-display-style') || 'opaque';
         const textSpan = overlay.querySelector('.overlay-text');
+        
+        overlay.style.backgroundColor = displayStyle === 'seethrough' ? 
+          TRANSPARENT_BACKGROUND : OPAQUE_BACKGROUND;
+        
         if (textSpan) {
           textSpan.style.color = 'white';
+          textSpan.style.display = displayStyle === 'seethrough' ? 'none' : 'block';
         }
       });
 
@@ -326,25 +337,31 @@ function processSelectedWords(selectedWords, selectionBounds) {
     });
   });
 }
-
 function processSelectionHighlight(selectionBounds) {
   const wordOverlays = document.querySelectorAll('.word-overlay');
   wordOverlays.forEach(overlay => {
     const rect = overlay.getBoundingClientRect();
+    const textSpan = overlay.querySelector('.overlay-text');
+    const displayStyle = overlay.getAttribute('data-display-style');
     
     if (rect.left < selectionBounds.right &&
         rect.right > selectionBounds.left &&
         rect.top < selectionBounds.bottom &&
         rect.bottom > selectionBounds.top) {
-      overlay.style.backgroundColor = '#4287f5';
-      overlay.style.color = 'black';
+      overlay.style.backgroundColor = SELECTED_BACKGROUND;
+      if (textSpan) {
+        textSpan.style.color = 'black';
+        textSpan.style.display = 'block';
+      }
     } else {
-      overlay.style.backgroundColor = 'rgb(0, 0, 0)';
-      overlay.style.color = 'white';
+      overlay.style.backgroundColor = displayStyle === 'seethrough' ? TRANSPARENT_BACKGROUND : OPAQUE_BACKGROUND;
+      if (textSpan) {
+        textSpan.style.color = 'white';
+        textSpan.style.display = displayStyle === 'seethrough' ? 'none' : 'block';
+      }
     }
   });
 }
-
 // Update the existing processScreenshot function with these changes:
 function showCreditExhaustedPopup(video) {
   // Get video position
@@ -725,6 +742,38 @@ async function processScreenshot(video) {
   });
 }
 function injectCSS() {
+  const styles = `
+    .loading-overlay {
+      position: absolute;
+      top: 30rem;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000000;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 6px solid transparent;
+      border-top-color:rgb(255, 255, 255);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
+  const styleElement = document.createElement('style');
+  styleElement.textContent = styles;
+  document.head.appendChild(styleElement);
+
   return new Promise((resolve) => {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
@@ -742,7 +791,7 @@ function createToggleSwitch(video) {
   Object.assign(container.style, {
     position: 'absolute',
     top: '35px',
-    right: '10px',
+    right: '30px',
     left: 'auto',
     zIndex: '1000000',
     backgroundColor: 'transparent',
@@ -795,18 +844,34 @@ toggleSwitch.addEventListener('change', async (event) => {
   
   // Continue with existing logic if authenticated
   if (!hasProcessedOCR && event.target.checked) {
-    const words = await processScreenshot(video);
-    if (!words) {
-      // If words is null, it might be due to credit exhaustion
-      // The popup would have been shown by processScreenshot
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    
+    const spinner = document.createElement('div');
+    spinner.className = 'loading-spinner';
+    
+    loadingOverlay.appendChild(spinner);
+    video.parentElement.appendChild(loadingOverlay);
+    
+    try {
+      const words = await processScreenshot(video);
+      
+      // Remove loading overlay
+      loadingOverlay.remove();
+      
+      if (!words) {
+        event.target.checked = false;
+        return;
+      }
+      
+      createWordOverlays(words, video);
+      hasProcessedOCR = true;
+      initializeTextSelection();
+    } catch (error) {
+      console.error('Error processing OCR:', error);
+      loadingOverlay.remove();
       event.target.checked = false;
-      return;
     }
-    // Pass the video to createWordOverlays so it can add overlays to video's parent
-    createWordOverlays(words, video);
-    hasProcessedOCR = true;
-    initializeTextSelection();
-    // toggleProtectiveOverlay(video, true);
   } 
 
   // Toggle visibility based on the overlay container for this specific video
@@ -882,16 +947,18 @@ toggleSwitch.addEventListener('change', async (event) => {
 // Helper function to create word overlays with fully stretched text
 // Helper function to create word overlays with fully stretched text
 function createWordOverlays(words, video) {
-  const scrollX = window.scrollX;
-  const scrollY = window.scrollY;
-  
-  // Create a container for all word overlays in the video's parent element
+  chrome.storage.local.get(['displayStyle'], function(result) {
+    currentDisplayStyle = result.displayStyle || 'opaque';
+    createOverlaysWithStyle(words, video, currentDisplayStyle);
+  });
+}
+
+function createOverlaysWithStyle(words, video, displayStyle) {
   const overlayContainerID = `overlay-container-${Date.now()}`;
   const existingContainer = document.getElementById(overlayContainerID);
   
-  let overlayContainer = existingContainer;
-  if (!overlayContainer) {
-    overlayContainer = document.createElement('div');
+  let overlayContainer = existingContainer || document.createElement('div');
+  if (!existingContainer) {
     overlayContainer.id = overlayContainerID;
     overlayContainer.className = 'word-overlays-container';
     
@@ -905,40 +972,38 @@ function createWordOverlays(words, video) {
       pointerEvents: 'none'
     });
     
-    // Add to the video's parent element
     video.parentElement.appendChild(overlayContainer);
-    
-    // Store reference to the container ID in the video
     video.dataset.overlayContainerId = overlayContainerID;
   }
 
+  const backgroundColor = displayStyle === 'seethrough' ? TRANSPARENT_BACKGROUND : OPAQUE_BACKGROUND;
+  const textDisplay = displayStyle === 'seethrough' ? 'none' : 'block';
+
   words.forEach(box => {
-    // Create the container div for each word
     const wordDiv = document.createElement('div');
     wordDiv.className = 'word-overlay';
     wordDiv.setAttribute('data-text', box.text);
+    wordDiv.setAttribute('data-display-style', displayStyle);
+    
     if (box.line !== undefined) {
       wordDiv.setAttribute('data-line', box.line);
     }
     
-    // Store spacing information
     if (box.addSpaceBefore === true) {
       wordDiv.setAttribute('data-add-space', 'true');
     }
     
-    // Calculate position relative to overlay container
     const videoRect = video.getBoundingClientRect();
     const relativeTop = box.y - videoRect.top;
     const relativeLeft = box.x - videoRect.left;
     
-    // Position and size the container
     Object.assign(wordDiv.style, {
       position: 'absolute',
       top: relativeTop + 'px',
       left: relativeLeft + 'px',
       width: box.width + 'px',
       height: box.height + 'px',
-      backgroundColor: 'rgb(0, 0, 0)',
+      backgroundColor: backgroundColor,
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
@@ -948,33 +1013,32 @@ function createWordOverlays(words, video) {
       zIndex: '999995',
       cursor: 'text',
       border: '1px solid #a64dff',
-      pointerEvents: 'auto' // Make words individually clickable
+      pointerEvents: 'auto',
+      transition: 'background-color 0.2s ease'
     });
     
-    // Create the text span that will be stretched
     const textSpan = document.createElement('span');
     textSpan.textContent = box.text;
     textSpan.className = 'overlay-text';
     
-    // Initial style for the text
     Object.assign(textSpan.style, {
-      display: 'block',
+      display: textDisplay,
       color: 'white',
       fontFamily: 'Arial, sans-serif',
       fontWeight: 'bold',
       whiteSpace: 'nowrap',
-      fontSize: '10px', // Start small
+      fontSize: '10px',
       position: 'absolute',
-      transformOrigin: 'center'
+      transformOrigin: 'center',
+      transition: 'color 0.2s ease'
     });
     
-    
-    // Add the text span to the word div, and the word div to the overlay container
     wordDiv.appendChild(textSpan);
     overlayContainer.appendChild(wordDiv);
     
-    // Now stretch the text to fill the container
-    stretchTextToFit(textSpan, box.width, box.height);
+    
+      stretchTextToFit(textSpan, box.width, box.height);
+    
   });
   
   return overlayContainer;
@@ -1136,6 +1200,22 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     const wordOverlays = document.querySelectorAll('.word-overlay');
     wordOverlays.forEach(overlay => {
       overlay.style.display = textVisible ? 'flex' : 'none';
+    });
+  }
+  if (request.action === "updateDisplayStyle") {
+    currentDisplayStyle = request.style;
+    const wordOverlays = document.querySelectorAll('.word-overlay');
+    
+    wordOverlays.forEach(overlay => {
+      const textSpan = overlay.querySelector('.overlay-text');
+      overlay.setAttribute('data-display-style', request.style);
+      
+      if (!overlay.style.backgroundColor.includes('rgb(66, 135, 245)')) { // Not selected
+        overlay.style.backgroundColor = request.style === 'seethrough' ? TRANSPARENT_BACKGROUND : OPAQUE_BACKGROUND;
+        if (textSpan) {
+          textSpan.style.display = request.style === 'seethrough' ? 'none' : 'block';
+        }
+      }
     });
   }
 });

@@ -1,11 +1,12 @@
 /* Ultra-Modern Navbar with Purple Accents */
 .navbar {
   display: flex;
+  height: 55px;
   justify-content: space-between;
   align-items: center;
   background-color: rgba(15, 15, 15, 0.7); /* Slightly transparent */
-  backdrop-filter: blur(10px); /* Frosted glass effect */
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(5px); /* Frosted glass effect */
+  -webkit-backdrop-filter: blur(5px);
   padding: 1rem 3rem;
   position: sticky;
   top: 0;

@@ -9,22 +9,22 @@ const Home = () => {
       id: 1,
       name: "Free",
       price: 0,
-      features: ["5 Credits/Month", "Basic Text Extraction", "Email Support"],
+      features: ["25 Credits/Month", "Advanced Text Extraction","Screenshot Capture"],
       popular: false
     },
     {
       id: 2,
-      name: "Pro",
-      price: 9.99,
-      features: ["100 Credits/Month", "Advanced OCR", "Priority Support", "Export to PDF"],
-      popular: true
+      name: "Basic",
+      price: 3.00,
+      features: ["600 Credits/Month", "Advanced Text Extraction", "Priority Support", "Screenshot Capture"],
+      popular: false
     },
     {
       id: 3,
-      name: "Enterprise",
-      price: 29.99,
-      features: ["Unlimited Credits", "Team Sharing", "API Access", "24/7 Support"],
-      popular: false
+      name: "Pro",
+      price: 5.00,
+      features: ["1200 Credits/Month", "Advanced Text Extraction", "24/7 Support","early access of upcoming features"],
+      popular: true
     }
   ]);
 
@@ -36,7 +36,7 @@ const Home = () => {
       <section className="hero">
   <div className="hero-content">
     <h1>Extract Any Text with <span className="gradient-text">One Click</span></h1>
-    <p className="subtitle">The ultimate Chrome extension for seamlessly extracting text from any website, image, or PDF</p>
+    <p className="subtitle">The ultimate Chrome extension for seamlessly extracting text from any Youtube video, Handwritten, or Typed</p>
     
     <a 
       href="https://chrome.google.com/webstore/detail/selecttextexe/lamomcdfocoklbenmamelleakhmpodge" 
@@ -82,7 +82,7 @@ const Home = () => {
     
     <div className="stats">
       <div className="stat">
-        <span className="stat-number">100K+</span>
+        <span className="stat-number">1000+</span>
         <span className="stat-label">Users</span>
       </div>
       <div className="stat">
@@ -90,7 +90,7 @@ const Home = () => {
         <span className="stat-label">Rating</span>
       </div>
       <div className="stat">
-        <span className="stat-number">15M+</span>
+        <span className="stat-number">400+</span>
         <span className="stat-label">Extractions</span>
       </div>
     </div>
@@ -100,7 +100,7 @@ const Home = () => {
   <div className="hero-video">
     <iframe 
     src="https://www.youtube.com/embed/mLWD4g7n5Ic?autoplay=1&mute=1&rel=0" 
-    title="SelectText Demo" 
+    title="Textify Demo" 
       frameBorder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
       allowFullScreen
@@ -148,14 +148,14 @@ const Home = () => {
           </div>
           
           <div className="copy-mode-card">
-  <div className="copy-mode-header">
-    <div className="copy-mode-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M4 7h16M8 12h12M12 17h8" />
-      </svg>
-    </div>
-    <h3>Indent Mode</h3>
-  </div>
+            <div className="copy-mode-header">
+              <div className="copy-mode-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 7h16M8 12h12M12 17h8" />
+                 </svg>
+              </div>
+              <h3>Indent Mode</h3>
+      </div>
   <div className="copy-mode-example code-example">
     <pre>{`return (
   <div style={{display:"flex"}}>
@@ -215,7 +215,7 @@ const Home = () => {
           <p>Everything you need for seamless text extraction</p>
         </div>
         
-        <div className="features-grid">
+        <div className="home-features-grid">
           <div className="feature-card">
             <div className="feature-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -249,6 +249,8 @@ const Home = () => {
             <h3>Website Support</h3>
             <p>Youtube <span className="supported-tag">Available</span></p>
             <p>Udemy <span className="coming-soon-tag">Coming Soon</span></p>
+            <p>Coursera <span className="coming-soon-tag">Coming Soon</span></p>
+
           </div>
           
           <div className="feature-card">
@@ -258,7 +260,7 @@ const Home = () => {
               </svg>
             </div>
             <h3>100+ Languages</h3>
-            <p>Support for over 100 languages with auto-detection</p>
+            <p>Support for over 100 languages with auto-detection and Mixed Language Support</p>
           </div>
           
           <div className="feature-card feature-highlight">
@@ -283,30 +285,14 @@ const Home = () => {
         <div className="video-container">
         <iframe 
           src="https://www.youtube.com/embed/mLWD4g7n5Ic?autoplay=0&rel=0" 
-          title="SelectText Tutorial" 
+          title="Textify Tutorial" 
           frameBorder="0" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
           allowFullScreen
         ></iframe>
         </div>
         
-        <div className="tutorial-steps">
-          <div className="step">
-            <div className="step-icon">1</div>
-            <h3>Install the Extension</h3>
-            <p>Add SelectText to Chrome with one click</p>
-          </div>
-          <div className="step">
-            <div className="step-icon">2</div>
-            <h3>Select Any Text</h3>
-            <p>Click on any text, image, or PDF</p>
-          </div>
-          <div className="step">
-            <div className="step-icon">3</div>
-            <h3>Extract & Use</h3>
-            <p>Copy, edit, or export the extracted text</p>
-          </div>
-        </div>
+      
       </section>
       
       
@@ -317,8 +303,8 @@ const Home = () => {
   <div className="footer-content">
     <div className="footer-main">
       <div className="footer-brand">
-        <h3>SelectText<span className="gradient-text">Exe</span></h3>
-        <p>The ultimate Chrome extension for seamlessly extracting text from any website, image, or PDF</p>
+        <h3>Textify<span className="gradient-text">.Exe</span></h3>
+        <p>The ultimate Chrome extension for seamlessly extracting text from any Video or image</p>
         
         <a 
           href="https://chrome.google.com/webstore/detail/selecttextexe/lamomcdfocoklbenmamelleakhmpodge" 
@@ -338,6 +324,8 @@ const Home = () => {
           <ul>
             <li><a href="#pricing">Pricing</a></li>
             <li><a href="#tutorial">How it Works</a></li>
+            <li><a href="#tutorial">Report a Bug</a></li>
+
             <li><a href="#faq">FAQ</a></li>
           </ul>
         </div>
@@ -347,8 +335,8 @@ const Home = () => {
         <div className="footer-links-column">
           <h4>Contact</h4>
           <ul>
-            <li><a href="mailto:support@selecttextexe.com">support@selecttextexe.com</a></li>
-            <li><a href="mailto:dev@selecttextexe.com">dev@selecttextexe.com</a></li>
+            <li><a href="textifyofficial@gmail.com">textifyofficial@gmail.com</a></li>
+            
             <li><a href="https://twitter.com/selecttextexe" target="_blank" rel="noopener noreferrer">Twitter</a></li>
             <li><a href="https://github.com/selecttextexe" target="_blank" rel="noopener noreferrer">GitHub</a></li>
           </ul>
@@ -358,10 +346,10 @@ const Home = () => {
     
     <div className="footer-bottom">
       <div className="copyright">
-        &copy; {new Date().getFullYear()} SelectTextExe. All rights reserved.
+        &copy; {new Date().getFullYear()} Textify. All rights reserved.
       </div>
       <div className="developer">
-        Made with <span className="heart">♥</span> by <a href="https://github.com/developername" target="_blank" rel="noopener noreferrer">Developer Name</a>
+        Made with <span className="heart">♥</span> by <a href="https://github.com/developername" target="_blank" rel="noopener noreferrer">Devansh Matha</a>
       </div>
     </div>
   </div>

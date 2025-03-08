@@ -24,7 +24,7 @@ def create_order(user, plan_id):
         # Create Razorpay order
         order_data = {
             'amount': amount_in_paise,
-            'currency': 'USD',
+            'currency': 'INR',
             'receipt': f'plan_{plan_id}_{user.id}',
             'notes': {
                 'user_id': user.id,
@@ -47,7 +47,7 @@ def create_order(user, plan_id):
         return {
             'order_id': razorpay_order['id'],
             'amount': amount_in_paise,
-            'currency': 'USD',
+            'currency': 'INR',
             'key_id': settings.RAZORPAY_KEY_ID
         }
     except Exception as e:

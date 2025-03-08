@@ -140,3 +140,17 @@ return (
   </div>
  );
 ;
+return (
+<div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+<h2>useState vs useRef</h2>
+<p>State Count: {count}</p>
+<button onClick={incrementState}>Increment State</button>
+</div>
+);
+return (
+ <div style={{display:"flex",alignItems:'center',flexDirection:'column'}}>
+   <h2>useState vs useRef</h2>
+   <p>State Count: {count}</p>
+   <button onClick={incrementState}>Increment State</button>
+  </div>
+);

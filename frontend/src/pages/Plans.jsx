@@ -83,63 +83,116 @@ const Plans = () => {
   if (error) return <div className="p_error">{error}</div>;
 
   return (
-    <div className="p_plans-container">
-      <h1 className="p_plans-title">Choose Your Plan</h1>
+    <div className="plans-page">
+      <div className="gradient-bg"></div>
+      
+      <div className="section-header">
+        <h2>Choose Your <span className="gradient-text">Plan</span></h2>
+        <p>Select the package that fits your needs</p>
+      </div>
       
       {paymentSuccess && (
-        <div className="p_success-message">
+        <div className="success-message">
           {paymentSuccess.message}
         </div>
       )}
       
       {paymentError && (
-        <div className="p_error-message">
+        <div className="error-message">
           {paymentError}
         </div>
       )}
       
-      <div className="p_plans-grid">
+      <div className="plans-container">
         {plans.map((plan) => (
-          <div key={plan.id} className={`p_plan-card ${plan.name.toLowerCase().replace(/\//g, '-')}`}>
-            <div className="p_plan-header">
-              <h2>{plan.name}</h2>
-              <div className="p_plan-price">
-                <span className="p_amount">${plan.price}</span>
-                <span className="p_period">/month</span>
-              </div>
+          <div key={plan.id} className={`plan-card ${plan.name === 'Pro' ? 'popular' : ''}`}>
+            {plan.name === 'Pro' && <div className="popular-tag">Most Popular</div>}
+            <h3 className="plan-name">{plan.name}</h3>
+            <div className="plan-price">
+              <span className="currency">$</span>
+              <span className="amount">{plan.price}</span>
+              <span className="period">/month</span>
             </div>
-            <div className="p_plan-features">
-              <div className="p_requests">
-                <span className="p_number">{plan.requests_per_month}</span>
-                <span className="p_label">requests/month</span>
-              </div>
-              <ul>
-                {plan.name === 'Free/Trial' && [
-                  <li key="1">Limited requests per month</li>,
-                  <li key="2">Basic features</li>,
-                  <li key="3">No credit card required</li>
-                ]}
-                {plan.name === 'Basic' && [
-                  <li key="1">Increased monthly requests</li>,
-                  <li key="2">Priority support</li>,
-                  <li key="3">Advanced features</li>
-                ]}
-                {plan.name === 'Pro' && [
-                  <li key="1">Maximum monthly requests</li>,
-                  <li key="2">24/7 Priority support</li>,
-                  <li key="3">All premium features</li>,
-                  <li key="4">Custom solutions</li>
-                ]}
-              </ul>
-            </div>
+            
+            <ul className="plan-features">
+              <li>
+                <svg className="check-icon" viewBox="0 0 24 24">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                </svg>
+                {plan.requests_per_month} Credits/Month
+              </li>
+              {plan.name === 'Free/Trial' && [
+                <li key="1">
+                  <svg className="check-icon" viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                  </svg>
+                  Advanced Text Extraction
+                </li>,
+                <li key="2">
+                  <svg className="check-icon" viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                  </svg>
+                  Screenshot Capture
+                </li>
+              ]}
+              {plan.name === 'Basic' && [
+                <li key="1">
+                  <svg className="check-icon" viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                  </svg>
+                  Advanced Text Extraction
+                </li>,
+                
+                <li key="2">
+                  <svg className="check-icon" viewBox="0 0 24 24">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                  </svg>
+                  Priority Support
+                </li>,
+                 <li key="3">
+                 <svg className="check-icon" viewBox="0 0 24 24">
+                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                 </svg>
+                 Screenshot Capture
+               </li>
+              ]}
+              {plan.name === 'Pro' && [
+  <li key="1">
+    <svg className="check-icon" viewBox="0 0 24 24">
+      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+    </svg>
+    Advanced Text Extraction
+  </li>,
+  
+  <li key="2">
+    <svg className="check-icon" viewBox="0 0 24 24">
+      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+    </svg>
+    24/7 Support
+  </li>,
+  <li key="3">
+  <svg className="check-icon" viewBox="0 0 24 24">
+    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+  </svg>
+  Unlimited Screenshot Capture
+</li>,
+  <li key="4">
+    <svg className="check-icon" viewBox="0 0 24 24">
+      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+    </svg>
+    Early Access of Upcoming Features
+  </li>
+]}
+            </ul>
+            
             <button 
-              className="p_plan-button"
+              className={`plan-btn ${plan.name === 'Pro' ? 'plan-btn-popular' : ''}`}
               onClick={() => handlePlanSelect(plan)}
               disabled={processingPlanId === plan.id}
             >
               {processingPlanId === plan.id 
                 ? 'Processing...' 
-                : (plan.name === 'Free/Trial' ? 'Get Started' : 'Upgrade Now')}
+                : (plan.price === 0 ? 'Start Free' : 'Choose Plan')}
             </button>
           </div>
         ))}

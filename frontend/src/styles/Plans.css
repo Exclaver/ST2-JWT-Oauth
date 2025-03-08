@@ -1,182 +1,284 @@
-.p_plans-container {
-  padding: 2rem;
-  max-width: 1200px;
+.plans-page {
+  background-color: #090909;
+  min-height: 50vh;
+  padding: 0rem 10%;
+  position: relative;
+  overflow: hidden;
+}
+
+.gradient-bg {
+  position: fixed;
+  top: -50%;
+  left: -20%;
+  width: 140%;
+  height: 200%;
+  background: 
+    linear-gradient(to bottom, rgba(10, 10, 12, 0.8), rgba(10, 10, 12, 1)),
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.03) 0%, rgba(10, 10, 12, 0) 20%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0%, rgba(10, 10, 12, 0) 20%),
+    radial-gradient(ellipse at 70% 35%, rgba(128, 52, 235, 0.07) 0%, rgba(10, 10, 12, 0) 60%),
+    radial-gradient(ellipse at 30% 60%, rgba(192, 105, 255, 0.06) 0%, rgba(10, 10, 12, 0) 50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.section-header h2 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.section-header p {
+  font-size: 1.1rem;
+  color: #888;
+  max-width: 600px;
   margin: 0 auto;
 }
 
-.p_plans-title {
-  text-align: center;
-  margin-bottom: 3rem;
-  color: #ffffff;
-  font-size: 2.5rem;
+.gradient-text {
+  background: linear-gradient(135deg, #a64dff, #8034eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline;
 }
 
-.p_plans-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+.plans-container {
+  display: flex;
   gap: 2rem;
-  padding: 1rem;
+  justify-content: center;
+  margin-top: 3rem;
+  position: relative;
+  z-index: 1;
+  min-height:150px;
 }
 
-.p_plan-card {
-  background-color: #1f1f1f;
-  border-radius: 10px;
-  padding: 2rem;
+.plan-card {
+  flex: 1;
+  max-width: 330px;
+  min-height: 150px;
+  background: #111;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid #1a1a1a;
+  position: relative;
+  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  position: relative;
+  justify-content: space-between;
+}
+
+.plan-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #333;
+  border-radius: 12px 12px 0 0;
+}
+
+.plan-card.popular {
+  transform: scale(1.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 50px rgba(128, 52, 235, 0.1);
+  border: 1px solid rgba(128, 52, 235, 0.2);
   z-index: 2;
+  min-height: 150px;
 }
 
-.p_plan-card:hover {
-  transform: translateY(-5px);
+.plan-card.popular::before {
+  background: #8034eb;
 }
 
-.p_plan-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
+.plan-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(128, 52, 235, 0.15);
 }
 
-.p_plan-header h2 {
-  color: #ffffff;
-  margin-bottom: 1rem;
+.plan-card.popular:hover {
+  transform: translateY(-10px) scale(1.05);
+}
+
+.popular-tag {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #8034eb;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 5px 15px rgba(128, 52, 235, 0.2);
+}
+
+.plan-name {
   font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: white;
 }
 
-.p_plan-price {
-  display: flex;
-  justify-content: center;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.p_amount {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #6200ea;
-}
-
-.p_period {
-  color: #888;
-}
-
-.p_requests {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background-color: #2d2d2d;
-  border-radius: 8px;
-}
-
-.p_requests .p_number {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #6200ea;
-  display: block;
-}
-
-.p_requests .p_label {
-  color: #888;
-}
-
-.p_plan-features ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.p_plan-features li {
-  padding: 0.5rem 0;
-  color: #ffffff;
+.plan-price {
+  margin: 2rem 0;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-.p_plan-features li::before {
-  content: "✓";
-  margin-right: 0.5rem;
-  color: #6200ea;
+.currency {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-right: 5px;
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  color: #8034eb;
 }
 
-.p_plan-button {
-  margin-top: auto;
-  background-color: #6200ea;
+.amount {
+  font-size: 3.5rem;
+  font-weight: 800;
   color: white;
-  border: none;
-  padding: 1rem;
-  border-radius: 6px;
+  line-height: 1;
+}
+
+.period {
   font-size: 1rem;
-  font-weight: bold;
+  color: #777;
+  margin-left: 5px;
+  align-self: flex-end;
+  margin-bottom: 0.8rem;
+}
+
+.plan-features {
+  list-style-type: none;
+  padding: 0;
+  margin: 2rem 0;
+  text-align: left;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 1.2rem;
+}
+
+.plan-features li {
+  padding-left: 1.5rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: #aaa;
+  font-size: 1.1rem;
+}
+
+.check-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  fill: #8034eb;
+}
+
+.plan-btn {
+  width: 100%;
+  padding: 1.2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  position: relative;
-  z-index: 2;
+  transition: all 0.3s ease;
+  background: #1a1a1a;
+  color: #8034eb;
+  border: 1px solid #8034eb;
+  margin-top: auto;
 }
 
-.p_plan-button:hover {
-  background-color: #3700b3;
+.plan-btn:hover {
+  background: #222;
+  transform: translateY(-3px);
 }
 
-.p_loading,
-.p_error {
+.plan-btn-popular {
+  background: #8034eb;
+  color: white;
+  box-shadow: 0 8px 15px rgba(128, 52, 235, 0.2);
+  border: none;
+}
+
+.plan-btn-popular:hover {
+  box-shadow: 0 12px 20px rgba(128, 52, 235, 0.3);
+  background: #7028d8;
+}
+
+.success-message,
+.error-message {
   text-align: center;
-  padding: 2rem;
-  color: #ffffff;
-}
-
-.p_error {
-  color: #ff5252;
-}
-
-@media (max-width: 768px) {
-  .p_plans-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .p_plans-container {
-    padding: 1rem;
-  }
-}
-
-.p_success-message {
-  background-color: #0d3b0d;
-  color: #ffffff;
-  padding: 15px;
+  padding: 1rem;
+  border-radius: 8px;
   margin-bottom: 2rem;
-  border-radius: 6px;
-  text-align: center;
-  border-left: 4px solid #2ecc71;
-  font-weight: 500;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   position: relative;
-  z-index: 5;
+  z-index: 1;
 }
 
-.p_error-message {
-  background-color: #3b0d0d;
-  color: #ffffff;
-  padding: 15px;
-  margin-bottom: 2rem;
-  border-radius: 6px;
-  text-align: center;
-  border-left: 4px solid #e74c3c;
-  font-weight: 500;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  position: relative;
-  z-index: 5;
+.success-message {
+  background: rgba(46, 204, 113, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  color: #2ecc71;
 }
 
-/* Fix for plan cards - ensure they're visible above any background elements */
-.p_plans-container * {
-  position: relative;
-  z-index: 2;
+.error-message {
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  color: #e74c3c;
 }
 
-/* Override any global background styles that might interfere */
-.p_plans-container {
-  position: relative;
-  background-color: #121212;
-  min-height: 100vh;
+@media screen and (max-width: 1200px) {
+  .plans-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+  }
+  
+  .plan-card {
+    width: 100%;
+    max-width: 400px;
+    min-height: 150px;
+  }
+  
+  .plan-card.popular {
+    transform: none;
+    min-height: 150px;
+  }
+  
+  .plan-card:hover,
+  .plan-card.popular:hover {
+    transform: translateY(-10px);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .plans-page {
+    padding: 2rem 5%;
+  }
+  
+  .section-header h2 {
+    font-size: 2.2rem;
+  }
+  
+  .plan-card {
+    min-height: 150px;
+    padding: 2rem 1.5rem;
+  }
 }
