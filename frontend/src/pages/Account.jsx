@@ -11,7 +11,7 @@ const Account = () => {
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const EXTENSION_ID = 'lamomcdfocoklbenmamelleakhmpodge';
+  const EXTENSION_ID = import.meta.env.VITE_EXTENSION_ID;
 
   useEffect(() => {
     const fetchAccountData = async () => {
@@ -30,13 +30,9 @@ const Account = () => {
     fetchAccountData();
   }, []);
 
-  const handleLogoutClick = () => {
-    setShowLogoutConfirm(true);
-  };
+  const handleLogoutClick = () => setShowLogoutConfirm(true);
+  const handleLogoutCancel = () => setShowLogoutConfirm(false);
 
-  const handleLogoutCancel = () => {
-    setShowLogoutConfirm(false);
-  };
 
   const handleLogoutConfirm = async () => {
     try {
@@ -57,12 +53,8 @@ const Account = () => {
           );
         });
       }
-      
-      // Use the AuthContext logout function which properly handles everything
       await logout();
-      
-      // Redirect to home page
-      window.location.href = '/';
+      navigate('/', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
     }

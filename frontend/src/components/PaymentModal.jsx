@@ -6,17 +6,14 @@ import '../styles/PaymentModal.css';
 const PaymentModal = ({ isOpen, onClose, plan, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
   if (!isOpen) return null;
   
   const handlePayment = async () => {
     try {
       setLoading(true);
-      setError(null);
-      
+      setError(null);    
       // Create order on server
       const orderData = await paymentAPI.createOrder(plan.id);
-      
       // Open Razorpay checkout
       openRazorpayCheckout(
         orderData,

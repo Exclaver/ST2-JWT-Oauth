@@ -252,3 +252,25 @@
       padding: 0;
     }
   }
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--primary-color, #6200ea);
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+  
+  .cta-button:hover {
+    transform: translateY(-2px);
+    background: var(--primary-color-dark, #5000c9);
+  }
+  
+  .chrome-icon {
+    width: 20px;
+    height: 20px;
+  }

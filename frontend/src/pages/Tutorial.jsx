@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import '../styles/Tutorial.css';
+const YOUTUBE_DEMO_ID = import.meta.env.VITE_YOUTUBE_DEMO_ID;
+const EXTENSION_URL = import.meta.env.VITE_CHROME_STORE_URL;
 
 const Tutorial = () => {
-  const [showAllLanguages, setShowAllLanguages] = useState(false);
-
-  const supportedLanguages = [
-    'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Russian',
-    'Chinese', 'Japanese', 'Korean', 'Arabic', 'Hindi', 'Bengali', 'Thai',
-  ];
+  
 
   return (
     <div className="tutorial-page">
@@ -17,13 +14,13 @@ const Tutorial = () => {
       <section className="tutorial-hero">
         <h1>YouTube Text Extraction <span className="gradient-text">Extension</span></h1>
         <div className="video-container">
-          <iframe 
-            src="https://www.youtube.com/embed/mLWD4g7n5Ic?rel=0" 
-            title="YouTube Text Extraction Tutorial"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
+        <iframe 
+          src={`https://www.youtube.com/embed/${YOUTUBE_DEMO_ID}?autoplay=1&rel=0&mute=1`}
+          title="YouTube Text Extraction Tutorial"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
         </div>
       </section>
 
@@ -229,10 +226,22 @@ const Tutorial = () => {
         
         {/* Call to Action */}
         <div className="doc-section cta-section">
-          <h2>Start Using YouTube Text Extraction Today!</h2>
-          <p>Download the extension and experience seamless text extraction from YouTube videos. 🚀</p>
-          <button className="cta-button">Download Extension</button>
-        </div>
+  <h2>Start Using YouTube Text Extraction Today!</h2>
+  <p>Download the extension and experience seamless text extraction from YouTube videos. 🚀</p>
+  <a 
+    href={EXTENSION_URL}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="cta-button"
+  >
+    <img 
+      src="https://www.google.com/favicon.ico" 
+      alt="Chrome" 
+      className="chrome-icon" 
+    />
+    Download Extension
+  </a>
+</div>
       </div>
     </div>
   );

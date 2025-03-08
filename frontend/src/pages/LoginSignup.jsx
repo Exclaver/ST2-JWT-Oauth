@@ -6,7 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../api';
 import ExtensionBridge from '../components/ExtensionBridge';
 
-const CLIENT_ID = '963962857620-ub5qr7ogishs3j4i2hui1jsua3ahjm94.apps.googleusercontent.com';
+
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const LoginSignup = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

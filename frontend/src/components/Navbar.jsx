@@ -16,13 +16,11 @@ const Navbar = () => {
   // Add scroll effect for navbar
   useEffect(() => {
     const navbar = document.querySelector('.navbar');
-    let lastScrollY = 0;
     let ticking = false;
   
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          // Use a buffer zone to prevent flickering
           if (window.scrollY > 50) {
             if (!navbar.classList.contains('scrolled')) {
               navbar.classList.add('scrolled');
@@ -41,12 +39,6 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  
-
-  
-
-  
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);

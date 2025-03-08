@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Home.css';
 
+const EXTENSION_URL = import.meta.env.VITE_CHROME_STORE_URL;
+const YOUTUBE_DEMO_ID = import.meta.env.VITE_YOUTUBE_DEMO_ID;
+const GITHUB_PROFILE = import.meta.env.VITE_GITHUB_PROFILE;
+const TWITTER_PROFILE = import.meta.env.VITE_TWITTER_PROFILE;
+const EMAIL_ID=import.meta.env.VITE_EMAIL_ID;
+const FEEDBACK_FORM=import.meta.env.VITE_FEEDBACK_FORM;
+
 const Home = () => {
   const navigate = useNavigate();
   const [plans, setPlans] = useState([
@@ -39,7 +46,7 @@ const Home = () => {
     <p className="subtitle">The ultimate Chrome extension for seamlessly extracting text from any Youtube video, Handwritten, or Typed</p>
     
     <a 
-      href="https://chrome.google.com/webstore/detail/selecttextexe/lamomcdfocoklbenmamelleakhmpodge" 
+      href={EXTENSION_URL}
       target="_blank" 
       rel="noopener noreferrer" 
       className="add-chrome-btn"
@@ -99,9 +106,9 @@ const Home = () => {
   {/* Replace image with video */}
   <div className="hero-video">
     <iframe 
-    src="https://www.youtube.com/embed/mLWD4g7n5Ic?autoplay=1&mute=1&rel=0" 
-    title="Textify Demo" 
-      frameBorder="0"
+      src={`https://www.youtube.com/embed/${YOUTUBE_DEMO_ID}?autoplay=1&mute=1&rel=0`}
+      frameBorder="0" 
+      title="Textify Demo" 
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
       allowFullScreen
     ></iframe>
@@ -284,7 +291,7 @@ const Home = () => {
         
         <div className="video-container">
         <iframe 
-          src="https://www.youtube.com/embed/mLWD4g7n5Ic?autoplay=0&rel=0" 
+          src={`https://www.youtube.com/embed/${YOUTUBE_DEMO_ID}?autoplay=0&rel=0`}
           title="Textify Tutorial" 
           frameBorder="0" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -307,7 +314,7 @@ const Home = () => {
         <p>The ultimate Chrome extension for seamlessly extracting text from any Video or image</p>
         
         <a 
-          href="https://chrome.google.com/webstore/detail/selecttextexe/lamomcdfocoklbenmamelleakhmpodge" 
+          href={EXTENSION_URL} 
           target="_blank" 
           rel="noopener noreferrer" 
           className="footer-cta-btn"
@@ -322,11 +329,11 @@ const Home = () => {
         <div className="footer-links-column">
           <h4>Product</h4>
           <ul>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#tutorial">How it Works</a></li>
-            <li><a href="#tutorial">Report a Bug</a></li>
+            <li><a href="/plans">Pricing</a></li>
+            <li><a href="/tutorial">How it Works</a></li>
+            <li><a href={FEEDBACK_FORM}>Report a Bug</a></li>
 
-            <li><a href="#faq">FAQ</a></li>
+            <li><a href="/tutorial">FAQ</a></li>
           </ul>
         </div>
         
@@ -335,10 +342,10 @@ const Home = () => {
         <div className="footer-links-column">
           <h4>Contact</h4>
           <ul>
-            <li><a href="textifyofficial@gmail.com">textifyofficial@gmail.com</a></li>
+            <li><a href={EMAIL_ID}>textifyofficial@gmail.com</a></li>
             
-            <li><a href="https://twitter.com/selecttextexe" target="_blank" rel="noopener noreferrer">Twitter</a></li>
-            <li><a href="https://github.com/selecttextexe" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            <li><a href={TWITTER_PROFILE} target="_blank" rel="noopener noreferrer">Twitter</a></li>
+            <li><a href={GITHUB_PROFILE}target="_blank" rel="noopener noreferrer">GitHub</a></li>
           </ul>
         </div>
       </div>
@@ -349,7 +356,7 @@ const Home = () => {
         &copy; {new Date().getFullYear()} Textify. All rights reserved.
       </div>
       <div className="developer">
-        Made with <span className="heart">♥</span> by <a href="https://github.com/developername" target="_blank" rel="noopener noreferrer">Devansh Matha</a>
+        Made with <span className="heart">♥</span> by <a href={GITHUB_PROFILE} target="_blank" rel="noopener noreferrer">Devansh Matha</a>
       </div>
     </div>
   </div>

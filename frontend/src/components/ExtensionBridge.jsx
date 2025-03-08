@@ -5,32 +5,25 @@ import { useNavigate } from 'react-router-dom';
 const ExtensionBridge = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const EXTENSION_ID = 'lamomcdfocoklbenmamelleakhmpodge';
+  const EXTENSION_ID = import.meta.env.VITE_EXTENSION_ID;
 
   const sendAuthToExtension = (user, tokens) => {
-    try {
-      chrome.runtime.sendMessage(
-        EXTENSION_ID,
-        {
-          action: 'storeAuthData',
-          token: tokens.access,
-          refreshToken: tokens.refresh,
-          user: user
-        },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            console.error('Auth data send error:', chrome.runtime.lastError);
-            return;
-          }
-          console.log('Auth data sent successfully:', response);
-        }
-      );
-    } catch (error) {
-      console.error('Error sending auth data:', error);
-    }
+    if (!chrome?.runtime?.sendMessage) return;
+
+    chrome.runtime.sendMessage(
+      EXTENSION_ID,
+      {
+        action: 'storeAuthData',
+        token: tokens.access,
+        refreshToken: tokens.refresh,
+        user: user
+      },
+      () => {
+        if (chrome.runtime.lastError) return;
+      }
+    );
   };
 
-  // Extension message listeners
   useEffect(() => {
     window.addEventListener('message', handleExtensionMessage);
     if (chrome?.runtime?.onMessage) {
@@ -45,24 +38,19 @@ const ExtensionBridge = () => {
     };
   }, []);
 
-  // Handle user state changes
   useEffect(() => {
+    if (!chrome?.runtime?.sendMessage) return;
+
     if (!user) {
-      if (chrome?.runtime?.sendMessage) {
-        chrome.runtime.sendMessage(
-          EXTENSION_ID,
-          { 
-            action: 'storeAuthData', 
-            token: null, 
-            user: null 
-          },
-          (response) => {
-            console.log('Extension notified of logout:', response);
-          }
-        );
-      }
+      chrome.runtime.sendMessage(
+        EXTENSION_ID,
+        { 
+          action: 'storeAuthData', 
+          token: null, 
+          user: null 
+        }
+      );
     } else {
-      // Get tokens from sessionStorage when user is available
       const accessToken = localStorage.getItem('access_token');
       const refreshToken = localStorage.getItem('refresh_token');
       
@@ -99,17 +87,14 @@ const ExtensionBridge = () => {
               token: null, 
               user: null 
             },
-            (response) => {
-              console.log('Extension storage cleared:', response);
-              resolve();
-            }
+            () => resolve()
           );
         });
       }
       await logout();
       navigate('/');
     } catch (error) {
-      console.error('Logout error:', error);
+      // Silent fail in production
     }
   };
 
