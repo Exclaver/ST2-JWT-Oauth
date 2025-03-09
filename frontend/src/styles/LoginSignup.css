@@ -1,0 +1,14 @@
+.google-login-container {
+    width: 100%;
+    max-width: 40px;
+    margin: 2rem auto;
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .google-login-container > div {
+    transform: scale(1.5); /* Makes the Google button 1.5 times larger */
+    margin: 1rem 0;
+  }

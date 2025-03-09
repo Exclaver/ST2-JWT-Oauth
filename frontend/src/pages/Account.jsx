@@ -12,7 +12,11 @@ const Account = () => {
   const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const EXTENSION_ID = import.meta.env.VITE_EXTENSION_ID;
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paymentsPerPage] = useState(5);
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
   useEffect(() => {
     const fetchAccountData = async () => {
       try {
@@ -99,6 +103,28 @@ const Account = () => {
   };
   
   const creditUsagePercent = calculateCreditUsage();
+  // Add this check before calculating pagination values
+const calculatePagination = () => {
+  if (!userData?.payment_history?.length) {
+    return {
+      currentPayments: [],
+      totalPages: 0
+    };
+  }
+
+  const indexOfLastPayment = currentPage * paymentsPerPage;
+  const indexOfFirstPayment = indexOfLastPayment - paymentsPerPage;
+  const currentPayments = userData.payment_history.slice(indexOfFirstPayment, indexOfLastPayment);
+  const totalPages = Math.ceil(userData.payment_history.length / paymentsPerPage);
+
+  return {
+    currentPayments,
+    totalPages
+  };
+};
+
+// Replace your existing pagination calculations with this
+const { currentPayments, totalPages } = calculatePagination();
 
   return (
     <div className="account-container">
@@ -181,40 +207,64 @@ const Account = () => {
       </div>
 
       {userData.payment_history && userData.payment_history.length > 0 && (
-        <div className="account-section payment-history">
-          <h2>Payment History</h2>
-          <div className="account-payment-table-container">
-            <table className="account-payment-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Plan</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Payment ID</th>
-                  <th>Payment Method</th>
-                </tr>
-              </thead>
-              <tbody>
-                {userData.payment_history.map(payment => (
-                  <tr key={payment.id}>
-                    <td>{new Date(payment.date).toLocaleDateString()}</td>
-                    <td>{payment.plan}</td>
-                    <td>${payment.amount.toFixed(2)}</td>
-                    <td>
-                      <span className={`account-status-badge ${payment.status}`}>
-                        {payment.status}
-                      </span>
-                    </td>
-                    <td className="account-payment-id">{payment.razorpay_payment_id}</td>
-                    <td>{payment.payment_method}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+  <div className="account-section payment-history">
+    <h2>Payment History</h2>
+    <div className="account-payment-table-container">
+      <table className="account-payment-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Plan</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Payment ID</th>
+            <th>Payment Method</th>
+          </tr>
+        </thead>
+        <tbody>
+          {currentPayments.map(payment => (
+            <tr key={payment.id}>
+              <td>{new Date(payment.date).toLocaleDateString()}</td>
+              <td>{payment.plan}</td>
+              <td>${payment.amount.toFixed(2)}</td>
+              <td>
+                <span className={`account-status-badge ${payment.status}`}>
+                  {payment.status}
+                </span>
+              </td>
+              <td className="account-payment-id">{payment.razorpay_payment_id}</td>
+              <td>{payment.payment_method}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      
+      {totalPages > 1 && (
+        <div className="pagination">
+        <button 
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="pagination-button"
+        >
+          &lt;
+        </button>
+        
+        <span className="page-info">
+          Page {currentPage} of {totalPages}
+        </span>
+        
+        <button 
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="pagination-button"
+        >
+          &gt;
+        </button>
+      </div>
       )}
+    </div>
+  </div>
+)}
 
       {showLogoutConfirm && (
         <div className="logout-confirm-overlay">

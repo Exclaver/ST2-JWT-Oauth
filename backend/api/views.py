@@ -2,34 +2,35 @@ from django.http import JsonResponse,HttpResponse
 from django.shortcuts import redirect
 from django.contrib.auth import login
 from django.contrib.auth.models import User
-from social_django.utils import psa
-from .models import Profile,Plan,Payment
 from django.views.decorators.csrf import csrf_exempt
-import json
-import requests
-from .utils import check_and_deduct_credits
-from social_django.models import UserSocialAuth
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.conf import settings
-import jwt
-from .payments import create_order, verify_payment as verify_razorpay_payment
 from django.views.decorators.http import require_POST
+from django.conf import settings
 from django.utils import timezone
-import datetime
-# Add these imports at the top of your file
+from .models import Profile,Plan,Payment
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from .utils import check_and_deduct_credits
+from social_django.utils import psa
+from social_django.models import UserSocialAuth
+import json
+import requests
+import jwt
+from .payments import create_order, verify_payment as verify_razorpay_payment
+import datetime
 import hmac
 import hashlib
 
+#https://NGROK-KEY.ngrok-free.app/api/payments/webhook/
 @csrf_exempt
 @api_view(['POST'])
 def razorpay_webhook(request):
     """Handle Razorpay webhook events"""
     try:
         # Verify webhook signature
+        
         webhook_signature = request.headers.get('X-Razorpay-Signature')
         webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
         
@@ -51,9 +52,11 @@ def razorpay_webhook(request):
         # Parse webhook data
         webhook_data = json.loads(request.body)
         event = webhook_data.get('event')
+        print(event)
 
         if event == 'payment.failed':
             # Handle failed payment
+            print("entered failed")
             payment_id = webhook_data['payload']['payment']['entity']['id']
             order_id = webhook_data['payload']['payment']['entity']['order_id']
             method = webhook_data['payload']['payment']['entity']['method']
@@ -64,7 +67,8 @@ def razorpay_webhook(request):
                 payment.razorpay_payment_id = payment_id
                 payment.payment_method=method
                 payment.save()
-                
+                print(" failed saved in db")
+
                 # You might want to revert any credits or plan changes here
                 
             except Payment.DoesNotExist:
@@ -338,8 +342,6 @@ def home(request):
 def login_signup(request):
     return HttpResponse("Login/Signup Page")
 
-from django.http import JsonResponse
-from .models import Plan
 
 @api_view(['GET'])
 def plans(request):
@@ -377,7 +379,7 @@ def account(request):
                 days_until_renewal = (profile.plan_expiry - today).days
         
         # Get payment history
-        payments = Payment.objects.filter(user=user).order_by('-created_at')[:5]  # Get 5 most recent payments
+        payments = Payment.objects.filter(user=user).order_by('-created_at')  # Get 5 most recent payments
         payment_history = [{
             'id': payment.id,
             'plan': payment.plan.get_name_display() if payment.plan else 'Unknown',
@@ -387,7 +389,7 @@ def account(request):
             'razorpay_payment_id': payment.razorpay_payment_id,
             'payment_method': payment.payment_method ,
         } for payment in payments]
-        print(payment_history)
+        
         return Response({
             'id': user.id,
             'username': user.username,
